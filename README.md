@@ -7,7 +7,7 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 
 - `public_html/index.php` – PHP entry point that calls the Python helper.
 - `script/whisper_transcribe.py` – Python script performing the transcription.
-- `script/convert_all.bat` – Windows helper to batch transcribe `.wav` files.
+- `script/convert_all.bat` – Windows helper to batch transcribe `.wav` files; skips files with an existing non-empty `.txt` transcript.
 - `config_files/config.php` – configuration for paths including the sound directory.
 - `documents/`, `business_information/`, `etc/` – placeholders for project
   organisation.
@@ -41,6 +41,8 @@ individual `.txt` files by running:
 ```bat
 script\convert_all.bat
 ```
+
+Existing non-empty `.txt` files are left untouched.
 
 ## Testing
 
