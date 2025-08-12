@@ -51,7 +51,7 @@ def main() -> int:
     model = whisper.load_model('base')
     sys.stdout.reconfigure(newline="\r\n")
     if target.is_file():
-        print(_transcribe_file(model, target))
+        print(_transcribe_file(model, target), end="")
     else:
         for audio_file in sorted(target.rglob('*.wav')):
             text = _transcribe_file(model, audio_file)

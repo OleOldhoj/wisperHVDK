@@ -7,7 +7,7 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 
 - `public_html/index.php` – PHP entry point that calls the Python helper.
 
-- `script/convert_all.bat` – Windows helper to batch transcribe `.wav` files; skips files with an existing non-empty `.txt` transcript.
+- `script/convert_all.bat` – Windows helper to batch transcribe `.wav` files; skips files with an existing non-empty `.txt` transcript and produces an empty `.txt` for silent audio.
 - `script/whisper_transcribe.py` – Python script performing the transcription. It
   selects FP16 on GPUs and uses FP32 on CPUs to avoid precision warnings. Each
   transcript line includes a `[HH:MM:SS]` timestamp and uses Windows style CRLF
