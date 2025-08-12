@@ -8,10 +8,12 @@ printed one per line in the format ``<path>\t<text>``.
 from pathlib import Path
 import sys
 
+import torch  # type: ignore
+
 
 def _transcribe_file(model: "whisper.Whisper", audio_path: Path) -> str:
     """Return transcription text for ``audio_path`` using ``model``."""
-    result = model.transcribe(str(audio_path))
+    result = model.transcribe(str(audio_path), fp16=torch.cuda.is_available())
     return result.get("text", "").strip()
 
 
