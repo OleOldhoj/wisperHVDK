@@ -29,7 +29,7 @@ def test_transcribe_directory(tmp_path):
         'class Dummy:\n'
         '    def transcribe(self, path, fp16=False):\n'
         '        fp16_file.write_text(str(fp16))\n'
-        '        return {"text": Path(path).name}\n'
+        '        return {"segments": [{"start": 0.0, "text": Path(path).name}]}\n'
         'def load_model(name):\n'
         '    return Dummy()\n'
     )
@@ -42,7 +42,8 @@ def test_transcribe_directory(tmp_path):
     )
     env = {**os.environ, 'PYTHONPATH': str(tmp_path)}
     script = Path(__file__).with_name('whisper_transcribe.py')
-    result = subprocess.run([sys.executable, str(script), str(tmp_path)], capture_output=True, text=True, env=env)
+    result = subprocess.run([sys.executable, str(script), str(tmp_path)], capture_output=True, env=env)
     assert result.returncode == 0
-    assert 'sample.wav\tsample.wav' in result.stdout
+    expected = f"{audio}\t[00:00:00] sample.wav\r\n".encode()
+    assert result.stdout == expected
     assert (tmp_path / 'fp16.txt').read_text() == 'False'

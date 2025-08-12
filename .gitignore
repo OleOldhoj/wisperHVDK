@@ -1,4 +1,4 @@
 /sound/*/*/*.wav
-/script/__pycache__/test_whisper_transcribe.cpython-310-pytest-7.3.1.pyc
+script/__pycache__/
 /*.rar
 /sound/*/*/*.txt
