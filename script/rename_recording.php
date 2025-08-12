@@ -2,13 +2,46 @@
 // REM Rename call recording files by mapping extension numbers to contact names
 
 /**
+ * Load all contacts from the CSV file into an array keyed by extension.
+ */
+function load_contacts(string $contactsCsv, bool $debug = false): array
+{
+    if (!file_exists($contactsCsv)) {
+        if ($debug) {
+            echo "Debug: contacts file not found\n";
+        }
+        return [];
+    }
+    $handle = fopen($contactsCsv, 'r');
+    if ($handle === false) {
+        if ($debug) {
+            echo "Debug: cannot open contacts file\n";
+        }
+        return [];
+    }
+    $contacts = [];
+    // Skip header
+    fgetcsv($handle, 0, ',', '"', '\\');
+    while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
+        if (isset($row[2])) {
+            $contacts[$row[2]] = str_replace(' ', '', $row[0]);
+            if ($debug) {
+                echo "Debug: loaded contact {$row[0]} ({$row[2]})\n";
+            }
+        }
+    }
+    fclose($handle);
+    return $contacts;
+}
+
+/**
  * Rename a recording file by replacing the extension number with the contact name.
  *
- * @param string $filePath     Path to the recording file.
- * @param string $contactsCsv  CSV file containing contact data.
- * @param bool   $debug        Whether to print debug information.
+ * @param string $filePath Path to the recording file.
+ * @param array  $contacts Mapping of extension numbers to contact names.
+ * @param bool   $debug    Whether to print debug information.
  */
-function rename_recording(string $filePath, string $contactsCsv = __DIR__ . '/../contacts.csv', bool $debug = false): string
+function rename_recording(string $filePath, array $contacts, bool $debug = false): string
 {
     if ($debug) {
         echo "Debug: starting rename for $filePath\n";
@@ -18,12 +51,6 @@ function rename_recording(string $filePath, string $contactsCsv = __DIR__ . '/..
             echo "Debug: file not found\n";
         }
         return 'Error: file not found';
-    }
-    if (!file_exists($contactsCsv)) {
-        if ($debug) {
-            echo "Debug: contacts file not found\n";
-        }
-        return 'Error: contacts file not found';
     }
     $pattern = '/exten-(\d+)-/';
     if (!preg_match($pattern, $filePath, $matches)) {
@@ -36,34 +63,15 @@ function rename_recording(string $filePath, string $contactsCsv = __DIR__ . '/..
     if ($debug) {
         echo "Debug: extracted extension $extension\n";
     }
-    $handle = fopen($contactsCsv, 'r');
-    if ($handle === false) {
-        if ($debug) {
-            echo "Debug: cannot open contacts file\n";
-        }
-        return 'Error: cannot open contacts file';
-    }
-    $name = null;
-    // Skip header
-    fgetcsv($handle, 0, ',', '"', '\\');
-    while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
-        if ($debug && isset($row[2])) {
-            echo "Debug: checking contact {$row[0]} ({$row[2]})\n";
-        }
-        if (isset($row[2]) && $row[2] === $extension) {
-            $name = str_replace(' ', '', $row[0]);
-            if ($debug) {
-                echo "Debug: matched extension to $name\n";
-            }
-            break;
-        }
-    }
-    fclose($handle);
-    if ($name === null) {
+    if (!isset($contacts[$extension])) {
         if ($debug) {
             echo "Debug: extension $extension not found in contacts\n";
         }
         return 'Error: extension not found';
+    }
+    $name = $contacts[$extension];
+    if ($debug) {
+        echo "Debug: matched extension to $name\n";
     }
     $newPath = preg_replace($pattern, 'exten-' . $name . '-', $filePath);
     if ($debug) {
@@ -101,6 +109,7 @@ function rename_recordings(string $baseDir, string $contactsCsv = __DIR__ . '/..
         }
         return [];
     }
+    $contacts = load_contacts($contactsCsv, $debug);
     $results = [];
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($baseDir));
     foreach ($iterator as $file) {
@@ -109,7 +118,7 @@ function rename_recordings(string $baseDir, string $contactsCsv = __DIR__ . '/..
         }
         $path = $file->getPathname();
         if (preg_match('/exten-\d+-/', $path)) {
-            $results[$path] = rename_recording($path, $contactsCsv, $debug);
+            $results[$path] = rename_recording($path, $contacts, $debug);
         }
     }
     return $results;
@@ -125,7 +134,8 @@ if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
             echo "$old => $new\n";
         }
     } else {
-        echo rename_recording($path, __DIR__ . '/../contacts.csv', true);
+        $contacts = load_contacts(__DIR__ . '/../contacts.csv', true);
+        echo rename_recording($path, $contacts, true);
     }
 }
 ?>
