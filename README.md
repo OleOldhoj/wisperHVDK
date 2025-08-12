@@ -9,7 +9,9 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 
 - `script/convert_all.bat` – Windows helper to batch transcribe `.wav` files; skips files with an existing non-empty `.txt` transcript.
 - `script/whisper_transcribe.py` – Python script performing the transcription. It
-  selects FP16 on GPUs and uses FP32 on CPUs to avoid precision warnings.
+  selects FP16 on GPUs and uses FP32 on CPUs to avoid precision warnings. Each
+  transcript line includes a `[HH:MM:SS]` timestamp and uses Windows style CRLF
+  line endings.
 - `config_files/config.php` – configuration for paths including the sound directory.
 - `documents/`, `business_information/`, `etc/` – placeholders for project
   organisation.
@@ -35,7 +37,8 @@ To transcribe a single file:
 php public_html/index.php path="C:\\wisper\\07\\09\\rg-900-+4550499106-20250709-131344-1752059605.163788.wav"
 ```
 
-The script prints the transcription text to standard output.
+The script prints the transcription text to standard output with timestamps and
+CRLF line endings, making the output Windows friendly.
 
 On Windows you can convert every `.wav` under `C:\\wisper\\sound` to
 individual `.txt` files by running:
