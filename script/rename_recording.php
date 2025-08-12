@@ -81,10 +81,49 @@ function rename_recording(string $filePath, string $contactsCsv = __DIR__ . '/..
     return $newPath;
 }
 
+/**
+ * Rename all recordings under a directory by replacing extension numbers with contact names.
+ *
+ * @param string $baseDir     Directory to scan for recordings.
+ * @param string $contactsCsv CSV file containing contact data.
+ * @param bool   $debug       Whether to print debug information.
+ *
+ * @return array<string, string> Mapping of original file paths to new paths or error messages.
+ */
+function rename_recordings(string $baseDir, string $contactsCsv = __DIR__ . '/../contacts.csv', bool $debug = false): array
+{
+    if ($debug) {
+        echo "Debug: scanning directory $baseDir\n";
+    }
+    if (!is_dir($baseDir)) {
+        if ($debug) {
+            echo "Debug: directory not found\n";
+        }
+        return [];
+    }
+    $results = [];
+    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($baseDir));
+    foreach ($iterator as $file) {
+        if (!$file->isFile()) {
+            continue;
+        }
+        $path = $file->getPathname();
+        if (preg_match('/exten-\d+-/', $path)) {
+            $results[$path] = rename_recording($path, $contactsCsv, $debug);
+        }
+    }
+    return $results;
+}
+
 if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
     $path = $argv[1] ?? '';
     if ($path === '') {
         echo 'Error: missing path';
+    } elseif (is_dir($path)) {
+        $results = rename_recordings($path, __DIR__ . '/../contacts.csv', true);
+        foreach ($results as $old => $new) {
+            echo "$old => $new\n";
+        }
     } else {
         echo rename_recording($path, __DIR__ . '/../contacts.csv', true);
     }
