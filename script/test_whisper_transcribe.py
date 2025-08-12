@@ -71,3 +71,28 @@ def test_transcribe_empty_file_outputs_empty_text(tmp_path):
     result = subprocess.run([sys.executable, str(script), str(audio)], capture_output=True, env=env)
     assert result.returncode == 0
     assert result.stdout == b''
+
+
+def test_transcribe_handles_non_ascii_in_cp1252(tmp_path):
+    audio = tmp_path / 'arabic.wav'
+    audio.write_bytes(b'')
+    whisper_stub = (
+        'class Dummy:\n'
+        '    def transcribe(self, path, fp16=False):\n'
+        '        return {"segments": [{"start": 0.0, "text": "\u0627"}]}\n'
+        'def load_model(name):\n'
+        '    return Dummy()\n'
+    )
+    (tmp_path / 'whisper.py').write_text(whisper_stub)
+    (tmp_path / 'torch.py').write_text(
+        'class cuda:\n'
+        '    @staticmethod\n'
+        '    def is_available():\n'
+        '        return False\n'
+    )
+    env = {**os.environ, 'PYTHONPATH': str(tmp_path), 'PYTHONIOENCODING': 'cp1252'}
+    script = Path(__file__).with_name('whisper_transcribe.py')
+    result = subprocess.run([sys.executable, str(script), str(audio)], capture_output=True, env=env)
+    assert result.returncode == 0
+    expected = "[00:00:00] \u0627".encode()
+    assert result.stdout == expected
