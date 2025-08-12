@@ -49,7 +49,8 @@ def main() -> int:
         print(f'Path not found: {target}', file=sys.stderr)
         return 1
     model = whisper.load_model('base')
-    sys.stdout.reconfigure(newline="\r\n")
+    # Ensure Unicode output works on Windows consoles using cp1252 encoding
+    sys.stdout.reconfigure(encoding="utf-8", newline="\r\n")
     if target.is_file():
         print(_transcribe_file(model, target), end="")
     else:
