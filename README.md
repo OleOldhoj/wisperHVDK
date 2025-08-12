@@ -7,7 +7,7 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 
 - `public_html/index.php` – PHP entry point that calls the Python helper.
 - `script/whisper_transcribe.py` – Python script performing the transcription.
-- `config_files/config.php` – configuration for paths.
+- `config_files/config.php` – configuration for paths including the sound directory.
 - `documents/`, `business_information/`, `etc/` – placeholders for project
   organisation.
 
@@ -19,10 +19,17 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 
 ## Usage
 
-Place this repository at `C:\wisper` and run:
+Place this repository at `C:\\wisper`. To transcribe all `.wav` files under
+`C:\\wisper\\sound` run:
 
 ```bash
-php public_html/index.php file="C:\wisper\07\09\rg-900-+4550499106-20250709-131344-1752059605.163788.wav"
+php public_html/index.php
+```
+
+To transcribe a single file:
+
+```bash
+php public_html/index.php path="C:\\wisper\\07\\09\\rg-900-+4550499106-20250709-131344-1752059605.163788.wav"
 ```
 
 The script prints the transcription text to standard output.
