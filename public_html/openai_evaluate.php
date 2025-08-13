@@ -11,6 +11,7 @@ function openai_build_payload(string $transcript): array
 {
     $schema = [
         'type' => 'object',
+        'additionalProperties' => false,
         'properties' => [
             'greeting_quality' => ['type' => 'integer'],
             'needs_assessment' => ['type' => 'integer'],

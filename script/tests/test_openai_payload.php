@@ -13,3 +13,8 @@ if (!is_array($schema) || !isset($schema['properties']['greeting_quality'])) {
     fwrite(STDERR, "Schema not structured as expected\n");
     exit(1);
 }
+
+if (($schema['additionalProperties'] ?? null) !== false) {
+    fwrite(STDERR, "additionalProperties must be false\n");
+    exit(1);
+}
