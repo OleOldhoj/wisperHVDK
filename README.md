@@ -20,6 +20,9 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 - `script/rename_recording.php` – renames call recordings by mapping extension numbers to contact names; supports filenames like
  `out-123-0-8504-20250704-...` and `exten-8504-unknown-20250701-...`.
 - `script/fill_wispertalk.php` – populates the `WisperTALK` column in `sales_call_ratings` using MySQL (default DB `salescallsanalyse`) and OpenAI's Whisper API for entries missing transcripts; emits verbose debug to STDERR.
+- `script/fill_call_ratings.php` – evaluates `WisperTALK` transcripts with
+  OpenAI's GPT-5 model via the Responses API and updates scoring fields such as
+  `greeting_quality` and `WhatWorked`.
 - `config_files/config.php` – configuration for paths including the sound directory.
 - `documents/`, `business_information/`, `etc/` – placeholders for project
   organisation.
@@ -70,6 +73,12 @@ To populate missing `WisperTALK` values in the database:
 OPENAI_API_KEY=your_key php script/fill_wispertalk.php
 ```
 
+To score calls and fill in rating fields:
+
+```bash
+OPENAI_API_KEY=your_key php script/fill_call_ratings.php
+```
+
 ### Convert and save a transcript
 
 Use `script/convertThis.php` to create a text transcript next to an audio file.
@@ -97,4 +106,5 @@ php script/delete_short_files.php /path/to/dir
 ```bash
 pytest
 php script/tests/test_fill_wispertalk.php
+php script/tests/test_fill_call_ratings.php
 ```
