@@ -40,7 +40,13 @@ function openai_build_payload(string $transcript): array
 
     return [
         'model' => 'gpt-5',
-        'input' => $prompt,
+        // REM Responses API expects an array of messages
+        'input' => [
+            [
+                'role' => 'user',
+                'content' => $prompt,
+            ],
+        ],
         'text' => [
             'format' => [
                 'type' => 'json_schema',
@@ -73,10 +79,23 @@ function openai_extract_output_text(array $json): ?string
             $type = $item['type'] ?? '';
             if ($type === 'message') {
                 foreach ($item['content'] ?? [] as $content) {
-                    if (($content['type'] ?? '') === 'output_text' && is_string($content['text'] ?? null)) {
+                    $ctype = $content['type'] ?? '';
+                    if ($ctype === 'output_text' && is_string($content['text'] ?? null)) {
                         return $content['text'];
                     }
+                    if (in_array($ctype, ['json', 'json_schema'], true) && isset($content['json'])) {
+                        return json_encode($content['json']);
+                    }
+                    if ($ctype === 'tool_call' && isset($content['arguments'])) {
+                        return is_array($content['arguments'])
+                            ? json_encode($content['arguments'])
+                            : (string) $content['arguments'];
+                    }
                 }
+            } elseif ($type === 'tool' && isset($item['output'])) {
+                return is_array($item['output']) ? json_encode($item['output']) : (string) $item['output'];
+            } elseif ($type === 'tool' && isset($item['arguments'])) {
+                return is_array($item['arguments']) ? json_encode($item['arguments']) : (string) $item['arguments'];
             } elseif ($type === 'output_text' && is_string($item['text'] ?? null)) {
                 // Some responses may embed text directly at the top level
                 return $item['text'];
