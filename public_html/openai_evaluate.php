@@ -48,9 +48,11 @@ function openai_evaluate(string $transcript): array
     $payload = [
         'model' => 'gpt-5',
         'input' => $prompt,
-        'response_format' => [
-            'type' => 'json_schema',
-            'json_schema' => $schema,
+        'text' => [
+            'format' => [
+                'type' => 'json_schema',
+                'json_schema' => $schema,
+            ],
         ],
         'max_output_tokens' => 500,
     ];

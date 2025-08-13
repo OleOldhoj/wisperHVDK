@@ -22,8 +22,9 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 - `script/fill_wispertalk.php` – populates the `WisperTALK` column in `sales_call_ratings` using MySQL (default DB `salescallsanalyse`) and OpenAI's Whisper API for entries missing transcripts; emits verbose debug to STDERR.
 - `script/fill_call_ratings.php` – evaluates `WisperTALK` transcripts with
   OpenAI's GPT-5 model via the Responses API and updates scoring fields such as
-  `greeting_quality` and `WhatWorked`; emits extensive debug information to STDERR
-  including payload details and raw API responses.
+  `greeting_quality` and `WhatWorked`. The request uses `text.format` with a
+  JSON schema to force structured output and emits extensive debug information
+  to STDERR, including payload details and raw API responses.
 - `config_files/config.php` – configuration for paths including the sound directory.
 - `documents/`, `business_information/`, `etc/` – placeholders for project
   organisation.
