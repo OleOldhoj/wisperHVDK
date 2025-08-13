@@ -2,6 +2,56 @@
 // REM Evaluate sales call transcripts using the OpenAI Responses API
 
 /**
+ * Build the OpenAI Responses API payload for a transcript.
+ *
+ * @param string $transcript Full transcript to analyse
+ * @return array<string,mixed> Payload ready for JSON encoding
+ */
+function openai_build_payload(string $transcript): array
+{
+    $schema = [
+        'type' => 'object',
+        'properties' => [
+            'greeting_quality' => ['type' => 'integer'],
+            'needs_assessment' => ['type' => 'integer'],
+            'product_knowledge' => ['type' => 'integer'],
+            'persuasion' => ['type' => 'integer'],
+            'closing' => ['type' => 'integer'],
+            'WhatWorked' => ['type' => 'string'],
+            'WhatDidNotWork' => ['type' => 'string'],
+            'manager_comment' => ['type' => 'string'],
+        ],
+        'required' => [
+            'greeting_quality',
+            'needs_assessment',
+            'product_knowledge',
+            'persuasion',
+            'closing',
+            'WhatWorked',
+            'WhatDidNotWork',
+            'manager_comment',
+        ],
+    ];
+
+    $prompt = 'Assess the following sales call transcript. Rate each category on a '
+        . 'scale of 1-5 and provide brief notes for WhatWorked, WhatDidNotWork, '
+        . 'and a manager_comment. Transcript: ' . $transcript;
+
+    return [
+        'model' => 'gpt-5',
+        'input' => $prompt,
+        'text' => [
+            'format' => [
+                'type' => 'json_schema',
+                'name' => 'sales_call_evaluation',
+                'schema' => $schema,
+            ],
+        ],
+        'max_output_tokens' => 500,
+    ];
+}
+
+/**
  * Send transcript text to OpenAI and return structured evaluation data.
  *
  * @param string $transcript Full transcript to analyse
@@ -14,48 +64,7 @@ function openai_evaluate(string $transcript): array
         return ['error' => 'missing API key'];
     }
 
-    $schema = [
-        'name' => 'sales_call_evaluation',
-        'schema' => [
-            'type' => 'object',
-            'properties' => [
-                'greeting_quality' => ['type' => 'integer'],
-                'needs_assessment' => ['type' => 'integer'],
-                'product_knowledge' => ['type' => 'integer'],
-                'persuasion' => ['type' => 'integer'],
-                'closing' => ['type' => 'integer'],
-                'WhatWorked' => ['type' => 'string'],
-                'WhatDidNotWork' => ['type' => 'string'],
-                'manager_comment' => ['type' => 'string'],
-            ],
-            'required' => [
-                'greeting_quality',
-                'needs_assessment',
-                'product_knowledge',
-                'persuasion',
-                'closing',
-                'WhatWorked',
-                'WhatDidNotWork',
-                'manager_comment',
-            ],
-        ],
-    ];
-
-    $prompt = 'Assess the following sales call transcript. Rate each category on a '
-        . 'scale of 1-5 and provide brief notes for WhatWorked, WhatDidNotWork, '
-        . 'and a manager_comment. Transcript: ' . $transcript;
-
-    $payload = [
-        'model' => 'gpt-5',
-        'input' => $prompt,
-        'text' => [
-            'format' => [
-                'type' => 'json_schema',
-                'json_schema' => $schema,
-            ],
-        ],
-        'max_output_tokens' => 500,
-    ];
+    $payload = openai_build_payload($transcript);
 
     fwrite(STDERR, "Preparing OpenAI request (" . strlen($transcript) . " chars)\n");
     fwrite(STDERR, "Request payload: " . json_encode($payload) . "\n");
