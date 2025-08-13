@@ -1,10 +1,10 @@
 Name,Department,Extension,NumberType,Status
-Admin,,8002,Application: Telephony,Not connected
-S K,,8003,Default number,Not connected
+Admin,Admin,8002,Application: Telephony,Not connected
+SK,Admin,8003,CEO,Not connected
+Thorsten Olsen,Admin,1213,Default number,Not connected
 Minh Lam,CS,1191,Default number,Not connected
 Rasmus Detlefsen,CS,1004,Default number,Not connected
-Mikkel Bonde,,1007,Default number,Not connected
-Thorsten Olsen,,1213,Default number,Not connected
+Mikkel Bonde,CS,1007,Default number,Not connected
 Sebastian S,Sales Person,1184,Application: Telephony,Not connected
 Deniz Isikli,Senior Key Account,1001,Default number,Not connected
 Morten Hyldgaard,CS,8504,Default number,Not connected
@@ -13,5 +13,5 @@ Sune Kidmose,Salgs,1183,Default number,Not connected
 Nicolai Stenius,Senior Key Account,8001,Default number,Not connected
 Sascha Saxo Larsen,Service,8501,Default number,Not connected
 Frederic Nygaard,Salgs,8006,Default number,Not connected
-Kristian Rogvi,Salegs,1212,Default number,Not connected
+Kristian Rogvi,Salgs,1212,Default number,Not connected
 
