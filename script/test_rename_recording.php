@@ -9,10 +9,11 @@ if (!is_dir($dir2)) { mkdir($dir2, 0777, true); }
 
 $old1 = $dir1 . '/out-25787816-1183-20250701-111155-1751361115.85474.wav';
 $new1 = $dir1 . '/out-25787816-SuneKidmose-Salgs-20250701-111155-1751361115.85474.wav';
-$old2 = $dir2 . '/out-25787816-1183-20250701-111155-1751361115.85475.wav';
-$new2 = $dir2 . '/out-25787816-SuneKidmose-Salgs-20250701-111155-1751361115.85475.wav';
+$old2 = $dir2 . '/out-25787816-0-1183-20250701-111155-1751361115.85475.wav';
+$new2 = $dir2 . '/out-25787816-0-SuneKidmose-Salgs-20250701-111155-1751361115.85475.wav';
 $old3 = $dir1 . '/exten-8504-unknown-20250701-111155-1751361115.85476.wav';
 $new3 = $dir1 . '/exten-MortenHyldgaard-CS-unknown-20250701-111155-1751361115.85476.wav';
+
 file_put_contents($old1, '');
 file_put_contents($old2, '');
 file_put_contents($old3, '');
