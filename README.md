@@ -6,6 +6,7 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 ## Layout
 
 - `public_html/index.php` – PHP entry point that calls the Python helper.
+- `public_html/openai_transcribe.php` – PHP script calling OpenAI's Whisper API.
 
 - `script/convert_all.bat` – Windows helper to batch transcribe `.wav` files; skips files with an existing non-empty `.txt` transcript and produces an empty `.txt` for silent audio.
 - `script/whisper_transcribe.py` – Python script performing the transcription. It
@@ -21,6 +22,7 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 - Python 3 with `openai-whisper` installed (`pip install -U openai-whisper`).
 - `ffmpeg` available on the system path.
 - PHP 8 running under XAMPP or similar.
+- OpenAI API key in `OPENAI_API_KEY` for API-based transcription.
 
 ## Usage
 
@@ -49,9 +51,16 @@ script\convert_all.bat
 
 Existing non-empty `.txt` files are left untouched.
 
+To transcribe a file using the OpenAI API:
+
+```bash
+OPENAI_API_KEY=your_key php public_html/openai_transcribe.php path/to/audio.wav
+```
+
 ## Testing
 
 ```bash
 pytest
 php script/test_index.php
+php script/test_openai_transcribe.php
 ```
