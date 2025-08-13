@@ -37,8 +37,9 @@ function process_missing_ratings(PDO $pdo, callable $evaluate): int
     $count = 0;
     foreach ($rows as $row) {
         $talk = (string) $row['WisperTALK'];
-        fwrite(STDERR, "Evaluating id {$row['id']}\n");
+        fwrite(STDERR, "Evaluating id {$row['id']} (" . strlen($talk) . " chars)\n");
         $result = $evaluate($talk);
+        fwrite(STDERR, "Result for id {$row['id']}: " . json_encode($result) . "\n");
         if (!is_array($result) || isset($result['error'])) {
             fwrite(STDERR, "Failed to evaluate id {$row['id']}: " . ($result['error'] ?? 'unknown') . "\n");
             continue;

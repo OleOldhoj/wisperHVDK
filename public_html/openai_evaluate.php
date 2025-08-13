@@ -55,6 +55,9 @@ function openai_evaluate(string $transcript): array
         'max_output_tokens' => 500,
     ];
 
+    fwrite(STDERR, "Preparing OpenAI request (" . strlen($transcript) . " chars)\n");
+    fwrite(STDERR, "Request payload: " . json_encode($payload) . "\n");
+
     $ch = curl_init('https://api.openai.com/v1/responses');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -69,20 +72,26 @@ function openai_evaluate(string $transcript): array
     $response = curl_exec($ch);
     if ($response === false) {
         $error = curl_error($ch);
+        fwrite(STDERR, "cURL error: {$error}\n");
         curl_close($ch);
         return ['error' => $error];
     }
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
+    fwrite(STDERR, "HTTP status: {$status}\n");
+    fwrite(STDERR, "Raw response: {$response}\n");
+
     $json = json_decode($response, true);
     if ($status !== 200 || !is_array($json)) {
+        fwrite(STDERR, "API request failed with status {$status}\n");
         return ['error' => 'API request failed'];
     }
 
     $text = $json['output_text'] ?? '';
     $data = json_decode($text, true);
     if (!is_array($data)) {
+        fwrite(STDERR, "Invalid JSON in response: {$text}\n");
         return ['error' => 'Invalid JSON in response'];
     }
 
