@@ -47,9 +47,9 @@ function openai_build_payload(string $transcript): array
                 'content' => $prompt,
             ],
         ],
-        // REM Enforce structured JSON output via response_format
-        'response_format' => [
-            'type' => 'json_schema',
+        // REM Enforce structured JSON output via text.format
+        'text' => [
+            'format' => 'json_schema',
             'json_schema' => [
                 'name' => 'sales_call_evaluation',
                 'schema' => $schema,
