@@ -60,7 +60,7 @@ foreach ($iterator as $file) {
         $filePath = $file->getPathname();
         $duration = getWavDuration($filePath);
 
-        if ($duration !== null && $duration < 60) {
+        if ($duration !== null && $duration < 120) {
             // Uncomment to actually delete
             unlink($filePath);
             echo 'Deleted .. '.$filePath . $file->getFilename() . ' (' . round($duration, 2) . ' sec)' . PHP_EOL;
