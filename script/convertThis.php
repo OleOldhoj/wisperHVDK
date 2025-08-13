@@ -21,6 +21,8 @@ function convert_recording(string $uri, $transcribeFn = 'openai_transcribe', boo
         $path = substr($uri, 7);
         if (PHP_OS_FAMILY === 'Windows' && isset($path[0]) && $path[0] === '/') {
             $path = ltrim($path, '/');
+        } else {
+            $path = '/' . ltrim($path, '/');
         }
         if ($debug) {
             echo "Debug: parsed file URI to $path\n";
@@ -39,19 +41,12 @@ function convert_recording(string $uri, $transcribeFn = 'openai_transcribe', boo
         }
         return $text;
     }
-    $dir = dirname($path);
-    $base = pathinfo($path, PATHINFO_FILENAME);
-    $timestamp = date('Ymd-His');
-    $id = sprintf('%.5f', microtime(true));
-    $parts = explode('-', $base);
-    if (count($parts) >= 5) {
-        $parts[count($parts) - 2] = $timestamp;
-        $parts[count($parts) - 1] = $id;
-        $base = implode('-', $parts);
-    } else {
-        $base .= '-' . $timestamp . '-' . $id;
+    $outPath = preg_replace('/\.wav$/i', '.openai.txt', $path);
+    if ($outPath === null) {
+        $dir = dirname($path);
+        $base = pathinfo($path, PATHINFO_FILENAME);
+        $outPath = $dir . DIRECTORY_SEPARATOR . $base . '.openai.txt';
     }
-    $outPath = $dir . DIRECTORY_SEPARATOR . $base . '.openai.txt';
     if ($debug) {
         echo "Debug: writing transcript to $outPath\n";
     }
