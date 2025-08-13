@@ -57,10 +57,26 @@ To transcribe a file using the OpenAI API:
 OPENAI_API_KEY=your_key php public_html/openai_transcribe.php path/to/audio.wav
 ```
 
+### Convert and save a transcript
+
+Use `script/convertThis.php` to create a text transcript next to an audio file:
+
+```bash
+php script/convertThis.php "file:///C:/wisper/sound/07/01/exten-FredericNygaard-unknown-20250701-080009-1751349609.81224.wav"
+```
+
+The script prints debug information and returns the path of the generated
+`*.openai.txt` file. A cron entry can run the conversion automatically:
+
+```cron
+* * * * * cd /path/to/wisperHVDK && php script/convertThis.php "file:///C:/wisper/sound/07/01/example.wav"
+```
+
 ## Testing
 
 ```bash
 pytest
 php script/test_index.php
 php script/test_openai_transcribe.php
+php script/test_convertThis.php
 ```
