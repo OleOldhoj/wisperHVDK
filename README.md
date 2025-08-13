@@ -6,7 +6,8 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 ## Layout
 
 - `public_html/index.php` – PHP entry point that calls the Python helper.
-- `public_html/openai_transcribe.php` – PHP script calling OpenAI's Whisper API.
+- `public_html/openai_transcribe.php` – PHP script calling OpenAI's Whisper API and
+  returning a timestamped transcript with CRLF line endings.
 
 - `script/convert_all.bat` – Windows helper to batch transcribe `.wav` files; skips files with an existing non-empty `.txt` transcript and produces an empty `.txt` for silent audio.
 - `script/whisper_transcribe.py` – Python script performing the transcription. It
@@ -59,7 +60,8 @@ OPENAI_API_KEY=your_key php public_html/openai_transcribe.php path/to/audio.wav
 
 ### Convert and save a transcript
 
-Use `script/convertThis.php` to create a text transcript next to an audio file:
+Use `script/convertThis.php` to create a text transcript next to an audio file.
+The `.wav` extension is replaced with `.openai.txt`:
 
 ```bash
 php script/convertThis.php "file:///C:/wisper/sound/07/01/exten-FredericNygaard-unknown-20250701-080009-1751349609.81224.wav"

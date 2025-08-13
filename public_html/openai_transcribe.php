@@ -1,5 +1,33 @@
 <?php
 // REM Transcribe audio files using the OpenAI Whisper API
+
+/**
+ * Format a timestamp in seconds to HH:MM:SS.
+ */
+function format_timestamp(float $seconds): string
+{
+    return gmdate('H:i:s', (int) $seconds);
+}
+
+/**
+ * Build a transcript string from Whisper segments.
+ * Each line contains a timestamp and the spoken text using CRLF endings.
+ *
+ * @param array<int, array<string, mixed>> $segments
+ */
+function format_transcript_segments(array $segments): string
+{
+    $lines = [];
+    foreach ($segments as $segment) {
+        if (!isset($segment['start'], $segment['text'])) {
+            continue;
+        }
+        $time = format_timestamp((float) $segment['start']);
+        $lines[] = "[$time] " . trim((string) $segment['text']);
+    }
+    return implode("\r\n", $lines);
+}
+
 /**
  * Transcribe the given audio file using OpenAI's Whisper API.
  */
@@ -17,6 +45,7 @@ function openai_transcribe(string $audioPath): string
     $data = [
         'model' => 'whisper-1',
         'file' => $cfile,
+        'response_format' => 'verbose_json',
     ];
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -35,10 +64,16 @@ function openai_transcribe(string $audioPath): string
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     $json = json_decode($response, true);
-    if ($status !== 200 || !is_array($json) || !isset($json['text'])) {
+    if ($status !== 200 || !is_array($json)) {
         return 'Error: API request failed';
     }
-    return (string) $json['text'];
+    if (isset($json['segments']) && is_array($json['segments'])) {
+        return format_transcript_segments($json['segments']);
+    }
+    if (isset($json['text'])) {
+        return (string) $json['text'];
+    }
+    return 'Error: API response missing text';
 }
 
 if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
