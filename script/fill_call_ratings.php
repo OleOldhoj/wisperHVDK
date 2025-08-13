@@ -61,7 +61,13 @@ function process_missing_ratings(PDO $pdo, callable $evaluate): int
     return $count;
 }
 
-if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
+/**
+ * Create a PDO connection using environment variables.
+ *
+ * @return PDO Database connection
+ */
+function create_pdo_from_env(): PDO
+{
     $connection = getenv('DB_CONNECTION') ?: 'mysql';
     $database   = getenv('DB_DATABASE')   ?: 'salescallsanalyse';
     $username   = getenv('DB_USERNAME')   ?: 'root';
@@ -70,18 +76,22 @@ if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
 
     if ($connection === 'sqlite') {
         $dsn = 'sqlite:' . $database;
-        $username = null;
-        $password = null;
         fwrite(STDERR, "Connecting using SQLite DSN {$dsn}\n");
-    } else {
-        $dsn = "mysql:host={$host};dbname={$database};charset=utf8mb4";
-        fwrite(STDERR, "Connecting using MySQL DSN {$dsn}\n");
-    }
-
-    try {
-        $pdo = new PDO($dsn, $username, $password, [
+        return new PDO($dsn, null, null, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         ]);
+    }
+
+    $dsn = "mysql:host={$host};dbname={$database};charset=utf8mb4";
+    fwrite(STDERR, "Connecting using MySQL DSN {$dsn}\n");
+    return new PDO($dsn, $username, $password, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
+}
+
+if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
+    try {
+        $pdo = create_pdo_from_env();
         fwrite(STDERR, "Database connection established\n");
     } catch (PDOException $e) {
         fwrite(STDERR, 'Database connection failed: ' . $e->getMessage() . "\n");

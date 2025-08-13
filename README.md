@@ -79,6 +79,15 @@ To score calls and fill in rating fields:
 OPENAI_API_KEY=your_key php script/fill_call_ratings.php
 ```
 
+A cron entry can run the evaluation periodically and persist a timestamped log:
+
+```cron
+*/5 * * * * cd /path/to/wisperHVDK && OPENAI_API_KEY=your_key php script/cron_fill_call_ratings.php >> /var/log/wisper_ratings.log 2>&1
+```
+
+The evaluation agent uses the OpenAI Responses API (`https://api.openai.com/v1/responses`) with the `gpt-5` model and the
+`sales_call_evaluation` schema defined in `public_html/openai_evaluate.php`.
+
 ### Convert and save a transcript
 
 Use `script/convertThis.php` to create a text transcript next to an audio file.
