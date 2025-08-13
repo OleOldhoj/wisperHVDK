@@ -18,3 +18,20 @@ if (($schema['additionalProperties'] ?? null) !== false) {
     fwrite(STDERR, "additionalProperties must be false\n");
     exit(1);
 }
+
+$response = [
+    'output' => [
+        [
+            'type' => 'message',
+            'content' => [
+                ['type' => 'output_text', 'text' => '{"foo":1}'],
+            ],
+        ],
+    ],
+];
+
+$text = openai_extract_output_text($response);
+if ($text !== '{"foo":1}') {
+    fwrite(STDERR, "Failed to extract output text\n");
+    exit(1);
+}

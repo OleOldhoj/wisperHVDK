@@ -53,6 +53,41 @@ function openai_build_payload(string $transcript): array
 }
 
 /**
+ * Extract the assistant text from an OpenAI Responses API payload.
+ *
+ * The API may return the generated text either in the convenience field
+ * `output_text` or nested within the `output` array. This helper searches both
+ * locations and returns the first match.
+ *
+ * @param array<string,mixed> $json Decoded API response
+ * @return string|null The output text or `null` if absent
+ */
+function openai_extract_output_text(array $json): ?string
+{
+    if (isset($json['output_text']) && is_string($json['output_text'])) {
+        return $json['output_text'];
+    }
+
+    if (isset($json['output']) && is_array($json['output'])) {
+        foreach ($json['output'] as $item) {
+            $type = $item['type'] ?? '';
+            if ($type === 'message') {
+                foreach ($item['content'] ?? [] as $content) {
+                    if (($content['type'] ?? '') === 'output_text' && is_string($content['text'] ?? null)) {
+                        return $content['text'];
+                    }
+                }
+            } elseif ($type === 'output_text' && is_string($item['text'] ?? null)) {
+                // Some responses may embed text directly at the top level
+                return $item['text'];
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
  * Send transcript text to OpenAI and return structured evaluation data.
  *
  * @param string $transcript Full transcript to analyse
@@ -100,7 +135,12 @@ function openai_evaluate(string $transcript): array
         return ['error' => 'API request failed'];
     }
 
-    $text = $json['output_text'] ?? '';
+    $text = openai_extract_output_text($json);
+    if (!is_string($text) || $text === '') {
+        fwrite(STDERR, "No output text in response\n");
+        return ['error' => 'No output text in response'];
+    }
+
     $data = json_decode($text, true);
     if (!is_array($data)) {
         fwrite(STDERR, "Invalid JSON in response: {$text}\n");
