@@ -8,6 +8,11 @@ if (($payload['text']['format']['name'] ?? '') !== 'sales_call_evaluation') {
     exit(1);
 }
 
+if (!is_array($payload['input']) || ($payload['input'][0]['role'] ?? '') !== 'user') {
+    fwrite(STDERR, "Input must be an array of user messages\n");
+    exit(1);
+}
+
 $schema = $payload['text']['format']['schema'] ?? null;
 if (!is_array($schema) || !isset($schema['properties']['greeting_quality'])) {
     fwrite(STDERR, "Schema not structured as expected\n");
@@ -19,7 +24,7 @@ if (($schema['additionalProperties'] ?? null) !== false) {
     exit(1);
 }
 
-$response = [
+$responseText = [
     'output' => [
         [
             'type' => 'message',
@@ -30,8 +35,40 @@ $response = [
     ],
 ];
 
-$text = openai_extract_output_text($response);
+$text = openai_extract_output_text($responseText);
 if ($text !== '{"foo":1}') {
-    fwrite(STDERR, "Failed to extract output text\n");
+    fwrite(STDERR, "Failed to extract output_text\n");
+    exit(1);
+}
+
+$responseJson = [
+    'output' => [
+        [
+            'type' => 'message',
+            'content' => [
+                ['type' => 'json', 'json' => ['bar' => 2]],
+            ],
+        ],
+    ],
+];
+
+$text = openai_extract_output_text($responseJson);
+if ($text !== '{"bar":2}') {
+    fwrite(STDERR, "Failed to extract JSON content\n");
+    exit(1);
+}
+
+$responseTool = [
+    'output' => [
+        [
+            'type' => 'tool',
+            'arguments' => ['baz' => 3],
+        ],
+    ],
+];
+
+$text = openai_extract_output_text($responseTool);
+if ($text !== '{"baz":3}') {
+    fwrite(STDERR, "Failed to extract tool arguments\n");
     exit(1);
 }
