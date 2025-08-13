@@ -1,6 +1,42 @@
 <?php
 // insert_sound_files.php
-// Recursively scan a directory for files and insert each path into sales_call_ratings table.
+// Recursively scan a directory for audio files and insert qualifying paths into
+// the sales_call_ratings table.
+
+/**
+ * Return duration of a WAV file in seconds or null on failure.
+ */
+function getWavDuration(string $file): ?float
+{
+    $handle = fopen($file, 'rb');
+    if ($handle === false) {
+        return null;
+    }
+
+    // Channels
+    fseek($handle, 22);
+    $channels = unpack('v', fread($handle, 2))[1] ?? 0;
+
+    // Sample rate
+    $sampleRate = unpack('V', fread($handle, 4))[1] ?? 0;
+
+    // Bits per sample
+    fseek($handle, 34);
+    $bitsPerSample = unpack('v', fread($handle, 2))[1] ?? 0;
+
+    // Data size
+    fseek($handle, 40);
+    $dataSize = unpack('V', fread($handle, 4))[1] ?? 0;
+
+    fclose($handle);
+
+    if ($channels === 0 || $bitsPerSample === 0 || $sampleRate === 0) {
+        return null;
+    }
+
+    $bytesPerSample = ($bitsPerSample / 8) * $channels;
+    return $dataSize / ($sampleRate * $bytesPerSample);
+}
 
 $directory = $argv[1] ?? 'C:\\wisper\\sound';
 
@@ -60,15 +96,24 @@ foreach ($iterator as $file) {
     if (!$file->isFile()) {
         continue;
     }
+
+    if (strtolower($file->getExtension()) !== 'wav') {
+        continue; // Only process WAV files
+    }
+
     $path = $file->getPathname();
-    $callId = pathinfo($path, PATHINFO_FILENAME);
-    try {
-        $stmt->execute([
-            ':filepath' => $path,
-            ':call_id' => $callId,
-        ]);
-    } catch (PDOException $e) {
-        // Continue on duplicate or other insertion errors.
-        fwrite(STDERR, "Failed to insert {$path}: " . $e->getMessage() . "\n");
+    $duration = getWavDuration($path);
+
+    if ($duration !== null && $duration < 120) {
+        $callId = pathinfo($path, PATHINFO_FILENAME);
+        try {
+            $stmt->execute([
+                ':filepath' => $path,
+                ':call_id' => $callId,
+            ]);
+        } catch (PDOException $e) {
+            // Continue on duplicate or other insertion errors.
+            fwrite(STDERR, "Failed to insert {$path}: " . $e->getMessage() . "\n");
+        }
     }
 }
