@@ -132,9 +132,8 @@ function rename_recordings(string $baseDir, string $contactsCsv = __DIR__ . '/..
 }
 
 if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
-    $path = $argv[1] ?? '';
+    $path = $argv[1] ?? "C:\wisper\sound";
     if ($path === '') {
-        echo 'Error: missing path';
     } elseif (is_dir($path)) {
         $results = rename_recordings($path, __DIR__ . '/../contacts.csv', true);
         foreach ($results as $old => $new) {
