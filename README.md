@@ -14,6 +14,7 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
   selects FP16 on GPUs and uses FP32 on CPUs to avoid precision warnings. Each
   transcript line includes a `[HH:MM:SS]` timestamp, emits UTF-8 text and uses
   Windows style CRLF line endings.
+- `script/delete_short_files.php` – removes `.wav` files shorter than one minute.
 - `config_files/config.php` – configuration for paths including the sound directory.
 - `documents/`, `business_information/`, `etc/` – placeholders for project
   organisation.
@@ -72,6 +73,12 @@ The script prints debug information and returns the path of the generated
 
 ```cron
 * * * * * cd /path/to/wisperHVDK && php script/convertThis.php "file:///C:/wisper/sound/07/01/example.wav"
+```
+
+To delete `.wav` files shorter than one minute within a directory (default is `sound`):
+
+```bash
+php script/delete_short_files.php /path/to/dir
 ```
 
 ## Testing
