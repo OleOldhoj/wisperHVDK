@@ -58,14 +58,37 @@ function rename_recording(string $filePath, array $contacts, bool $debug = false
         return 'Error: file not found';
     }
     $filename = basename($filePath);
-    $pattern = '/^(out-[^-]+-|exten-)(\d+)(-.*)$/';
-    if (!preg_match($pattern, $filename, $matches)) {
+    $parts = explode('-', $filename);
+    if (strpos($filename, 'out-') === 0) {
+        $dateIndex = null;
+        for ($i = count($parts) - 1; $i >= 0; $i--) {
+            if (preg_match('/^\\d{8}$/', $parts[$i])) {
+                $dateIndex = $i;
+                break;
+            }
+        }
+        if ($dateIndex === null || $dateIndex < 2) {
+            if ($debug) {
+                echo "Debug: extension not present in filename\n";
+            }
+            return 'Error: extension not found in path';
+        }
+        $extIndex = $dateIndex - 1;
+    } elseif (strpos($filename, 'exten-') === 0) {
+        if (count($parts) < 2) {
+            if ($debug) {
+                echo "Debug: extension not present in filename\n";
+            }
+            return 'Error: extension not found in path';
+        }
+        $extIndex = 1;
+    } else {
         if ($debug) {
             echo "Debug: extension not present in filename\n";
         }
         return 'Error: extension not found in path';
     }
-    $extension = $matches[2];
+    $extension = $parts[$extIndex];
     if ($debug) {
         echo "Debug: extracted extension $extension\n";
     }
@@ -79,7 +102,8 @@ function rename_recording(string $filePath, array $contacts, bool $debug = false
     if ($debug) {
         echo "Debug: matched extension to $name\n";
     }
-    $newFilename = $matches[1] . $name . $matches[3];
+    $parts[$extIndex] = $name;
+    $newFilename = implode('-', $parts);
     $newPath = dirname($filePath) . DIRECTORY_SEPARATOR . $newFilename;
     if ($debug) {
         echo "Debug: renaming to $newPath\n";
@@ -124,7 +148,8 @@ function rename_recordings(string $baseDir, string $contactsCsv = __DIR__ . '/..
             continue;
         }
         $path = $file->getPathname();
-        if (preg_match('/exten-\d+-/', $path) || preg_match('/^out-[^-]+-\d+-/', $file->getFilename())) {
+        $filename = $file->getFilename();
+        if (preg_match('/^exten-\d+-/', $filename) || preg_match('/^out-[^-]+-\d+-/', $filename)) {
             $results[$path] = rename_recording($path, $contacts, $debug);
         }
     }
