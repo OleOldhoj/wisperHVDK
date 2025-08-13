@@ -15,6 +15,8 @@ Prototype demonstrating how a Laravel-compatible PHP script can invoke the
   transcript line includes a `[HH:MM:SS]` timestamp, emits UTF-8 text and uses
   Windows style CRLF line endings.
 - `script/delete_short_files.php` – removes `.wav` files shorter than one minute.
+- `script/whisper_cost.php` – estimates the cost of transcribing `.wav` files
+  using Whisper's pricing (`$0.006` per minute).
 - `config_files/config.php` – configuration for paths including the sound directory.
 - `documents/`, `business_information/`, `etc/` – placeholders for project
   organisation.
@@ -88,4 +90,5 @@ pytest
 php script/test_index.php
 php script/test_openai_transcribe.php
 php script/test_convertThis.php
+php script/test_whisper_cost.php
 ```
