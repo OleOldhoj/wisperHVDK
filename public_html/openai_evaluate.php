@@ -115,6 +115,21 @@ function openai_extract_output_text(array $json): ?string
 }
 
 /**
+ * Build HTTP headers for OpenAI API requests.
+ *
+ * @param string $apiKey Secret token for Authorization header
+ * @return array<int,string> Array of HTTP header lines
+ */
+function openai_build_headers(string $apiKey): array
+{
+    return [
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . $apiKey,
+        'OpenAI-Beta: assistants=v2',
+    ];
+}
+
+/**
  * Send transcript text to OpenAI and return structured evaluation data.
  *
  * @param string      $transcript  Full transcript to analyse
@@ -141,10 +156,7 @@ function openai_evaluate(string $transcript, ?string $assistantId = null): array
     $ch = curl_init('https://api.openai.com/v1/responses');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $apiKey,
-        ],
+        CURLOPT_HTTPHEADER => openai_build_headers($apiKey),
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => json_encode($payload),
     ]);
