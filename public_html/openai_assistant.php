@@ -30,6 +30,15 @@ function oa_is_header_valid(array $ctx, string $expectedHeader): bool {
     return $ctx['version_header'] === $expectedHeader;
 }
 
+/**
+ * Output debug information when OA_DEBUG env var is set
+ */
+function oa_debug(string $message): void {
+    if (getenv('OA_DEBUG')) {
+        fwrite(STDERR, '[OA DEBUG] ' . $message . "\n");
+    }
+}
+
 /** -------- Assistants -------- */
 
 function oa_create_assistant(array &$ctx, string $name, string $instructions, array $tools, string $model = 'gpt-4-turbo-preview'): string {
@@ -254,7 +263,9 @@ function oa_create_run(array $ctx, string $thread_id, string $assistant_id): str
 
 function oa_send_get_request(array $ctx, string $route): array {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $ctx['base_url'] . $route);
+    $url = $ctx['base_url'] . $route;
+    oa_debug('GET ' . $url);
+    curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "Authorization: Bearer {$ctx['api_key']}",
@@ -267,7 +278,9 @@ function oa_send_get_request(array $ctx, string $route): array {
 
 function oa_send_post_request(array $ctx, string $route, ?array $payload = null): array {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $ctx['base_url'] . $route);
+    $url = $ctx['base_url'] . $route;
+    oa_debug('POST ' . $url . ' payload: ' . json_encode($payload));
+    curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
     if (!empty($payload)) {
@@ -294,9 +307,11 @@ function oa_execute_request($ch): array {
     curl_close($ch);
 
     if ($http_code < 200 || $http_code >= 300) {
-        // include body to help debugging
+        oa_debug('HTTP ' . $http_code . ' body: ' . $response);
         throw new Exception("OpenAI API returned HTTP {$http_code}. " . print_r($response, true));
     }
+
+    oa_debug('HTTP ' . $http_code . ' body: ' . $response);
 
     $decoded = json_decode($response, true);
     if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
