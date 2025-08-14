@@ -2,12 +2,13 @@
 // REM Evaluate sales call transcripts using the OpenAI Responses API
 
 /**
- * Build the OpenAI Responses API payload for a transcript.
+ * Build the OpenAI Responses API payload for a transcript using a fixed assistant.
  *
- * @param string $transcript Full transcript to analyse
+ * @param string $transcript  Full transcript to analyse
+ * @param string $assistantId Assistant identifier
  * @return array<string,mixed> Payload ready for JSON encoding
  */
-function openai_build_payload(string $transcript): array
+function openai_build_payload(string $transcript, string $assistantId): array
 {
     $schema = [
         'type' => 'object',
@@ -39,7 +40,7 @@ function openai_build_payload(string $transcript): array
         . 'and a manager_comment. Transcript: ' . $transcript;
 
     return [
-        'model' => 'gpt-5',
+        'assistant_id' => $assistantId,
         // REM Responses API expects an array of messages
         'input' => [
             [
@@ -111,17 +112,19 @@ function openai_extract_output_text(array $json): ?string
 /**
  * Send transcript text to OpenAI and return structured evaluation data.
  *
- * @param string $transcript Full transcript to analyse
+ * @param string      $transcript  Full transcript to analyse
+ * @param string|null $assistantId Assistant identifier (defaults to env or built-in)
  * @return array<string,mixed> Associative array of evaluation fields or ['error'=>string]
  */
-function openai_evaluate(string $transcript): array
+function openai_evaluate(string $transcript, ?string $assistantId = null): array
 {
     $apiKey = getenv('OPENAI_API_KEY');
     if ($apiKey === false || $apiKey === '') {
         return ['error' => 'missing API key'];
     }
 
-    $payload = openai_build_payload($transcript);
+    $assistantId = $assistantId ?: getenv('OPENAI_ASSISTANT_ID') ?: 'asst_dxSC2TjWn45PX7JDdM8RpiyQ';
+    $payload = openai_build_payload($transcript, $assistantId);
 
     fwrite(STDERR, "Preparing OpenAI request (" . strlen($transcript) . " chars)\n");
     fwrite(STDERR, "Request payload: " . json_encode($payload) . "\n");
@@ -172,8 +175,8 @@ function openai_evaluate(string $transcript): array
 }
 
 if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
-    if ($argc !== 2) {
-        fwrite(STDERR, "Usage: php openai_evaluate.php <transcript_file>\n");
+    if ($argc < 2 || $argc > 3) {
+        fwrite(STDERR, "Usage: php openai_evaluate.php <transcript_file> [assistant_id]\n");
         exit(1);
     }
     $transcript = file_get_contents($argv[1]);
@@ -181,7 +184,8 @@ if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
         fwrite(STDERR, "Failed to read transcript file\n");
         exit(1);
     }
-    $result = openai_evaluate($transcript);
+    $assistant = $argv[2] ?? null;
+    $result = openai_evaluate($transcript, $assistant);
     echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 }
 ?>
