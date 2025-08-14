@@ -2,10 +2,10 @@
 require_once __DIR__ . '/../../public_html/openai_evaluate.php';
 
 putenv('OPENAI_MODEL=test-model');
-$payload = openai_build_payload('sample transcript', 'asst_test');
+$payload = openai_build_payload('sample transcript');
 
-if (($payload['assistant_id'] ?? '') !== 'asst_test') {
-    fwrite(STDERR, "Assistant ID not set correctly\n");
+if (isset($payload['assistant_id'])) {
+    fwrite(STDERR, "assistant_id should not be present\n");
     exit(1);
 }
 

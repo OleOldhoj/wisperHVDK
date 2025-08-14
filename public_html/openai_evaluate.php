@@ -2,14 +2,13 @@
 // REM Evaluate sales call transcripts using the OpenAI Responses API
 
 /**
- * Build the OpenAI Responses API payload for a transcript using a fixed assistant.
+ * Build the OpenAI Responses API payload for a transcript.
  *
- * @param string      $transcript  Full transcript to analyse
- * @param string      $assistantId Assistant identifier
- * @param string|null $model       Model name to use (defaults to env or gpt-4.1-mini)
- * @return array<string,mixed> Payload ready for JSON encoding
+ * @param string      $transcript Full transcript to analyse
+ * @param string|null $model      Model name to use (defaults to env or gpt-4o)
+ * @return array<string,mixed>   Payload ready for JSON encoding
  */
-function openai_build_payload(string $transcript, string $assistantId, ?string $model = null): array
+function openai_build_payload(string $transcript, ?string $model = null): array
 {
     $model = $model ?: getenv('OPENAI_MODEL') ?: 'gpt-4o';
     $schema = [
@@ -42,7 +41,6 @@ function openai_build_payload(string $transcript, string $assistantId, ?string $
         . 'and a manager_comment. Transcript: ' . $transcript;
 
     return [
-        'assistant_id' => $assistantId,
         'model' => $model,
         // REM Responses API expects an array of messages
         'input' => [
@@ -117,23 +115,22 @@ function openai_extract_output_text(array $json): ?string
 /**
  * Send transcript text to OpenAI and return structured evaluation data.
  *
- * @param string      $transcript  Full transcript to analyse
- * @param string|null $assistantId Assistant identifier (defaults to env or built-in)
+ * @param string      $transcript Full transcript to analyse
+ * @param string|null $model      Optional model override
  *
  * The model is determined via the OPENAI_MODEL environment variable or defaults
- * to `gpt-4.1-mini`.
-* @return array<string,mixed> Associative array of evaluation fields or ['error'=>string]
-*/
-function openai_evaluate(string $transcript, ?string $assistantId = null): array
+ * to `gpt-4o`.
+ * @return array<string,mixed> Associative array of evaluation fields or ['error'=>string]
+ */
+function openai_evaluate(string $transcript, ?string $model = null): array
 {
     $apiKey = getenv('OPENAI_API_KEY');
     if ($apiKey === false || $apiKey === '') {
         return ['error' => 'missing API key'];
     }
 
-    $assistantId = $assistantId ?: getenv('OPENAI_ASSISTANT_ID') ?: 'asst_dxSC2TjWn45PX7JDdM8RpiyQ';
-    $model = getenv('OPENAI_MODEL') ?: 'gpt-4o';
-    $payload = openai_build_payload($transcript, $assistantId, $model);
+    $model = $model ?: getenv('OPENAI_MODEL') ?: 'gpt-4o';
+    $payload = openai_build_payload($transcript, $model);
 
     fwrite(STDERR, "Preparing OpenAI request (" . strlen($transcript) . " chars)\n");
     fwrite(STDERR, "Request payload: " . json_encode($payload) . "\n");
@@ -184,8 +181,8 @@ function openai_evaluate(string $transcript, ?string $assistantId = null): array
 }
 
 if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
-    if ($argc < 2 || $argc > 3) {
-        fwrite(STDERR, "Usage: php openai_evaluate.php <transcript_file> [assistant_id]\n");
+    if ($argc !== 2) {
+        fwrite(STDERR, "Usage: php openai_evaluate.php <transcript_file>\n");
         exit(1);
     }
     $transcript = file_get_contents($argv[1]);
@@ -193,8 +190,7 @@ if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
         fwrite(STDERR, "Failed to read transcript file\n");
         exit(1);
     }
-    $assistant = $argv[2] ?? null;
-    $result = openai_evaluate($transcript, $assistant);
+    $result = openai_evaluate($transcript);
     echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 }
 ?>
