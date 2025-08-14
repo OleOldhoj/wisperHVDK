@@ -37,6 +37,11 @@ if (!is_array($schema) || !isset($schema['properties']['greeting_quality'])) {
     exit(1);
 }
 
+if (!isset($schema['properties']['warning_comment']) || !in_array('warning_comment', $schema['required'] ?? [], true)) {
+    fwrite(STDERR, "warning_comment missing from schema\n");
+    exit(1);
+}
+
 if (($schema['additionalProperties'] ?? null) !== false) {
     fwrite(STDERR, "additionalProperties must be false\n");
     exit(1);

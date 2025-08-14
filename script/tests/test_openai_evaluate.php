@@ -10,6 +10,11 @@ if (($result['greeting_quality'] ?? null) !== 5) {
     exit(1);
 }
 
+if (($result['warning_comment'] ?? null) !== 'caution') {
+    fwrite(STDERR, "warning_comment not returned\n");
+    exit(1);
+}
+
 global $__stub_calls;
 $create = array_filter($__stub_calls, fn($c) => $c[0] === 'oa_create_assistant');
 if (count($create) !== 1) {

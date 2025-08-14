@@ -40,6 +40,7 @@ CREATE TABLE `sales_call_ratings` (
   `WhatWorked` varchar(1024) NOT NULL,
   `WhatDidNotWork` varchar(1024) NOT NULL,
   `manager_comment` text DEFAULT NULL,
+  `warning_comment` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

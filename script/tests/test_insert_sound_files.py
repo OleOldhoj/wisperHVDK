@@ -41,6 +41,7 @@ def test_insert_sound_files(tmp_path: Path) -> None:
             persuasion INTEGER NOT NULL,
             closing INTEGER NOT NULL,
             manager_comment TEXT,
+            warning_comment TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
         """
