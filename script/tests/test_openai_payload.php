@@ -3,8 +3,8 @@ require_once __DIR__ . '/../../public_html/openai_evaluate.php';
 
 $payload = openai_build_payload('sample transcript');
 
-$jsonSchema = $payload['text']['json_schema'] ?? null;
-if (($payload['text']['format'] ?? '') !== 'json_schema' || ($jsonSchema['name'] ?? '') !== 'sales_call_evaluation') {
+$jsonSchema = $payload['response_format']['json_schema'] ?? null;
+if (($payload['response_format']['type'] ?? '') !== 'json_schema' || ($jsonSchema['name'] ?? '') !== 'sales_call_evaluation') {
     fwrite(STDERR, "Missing or incorrect format name\n");
     exit(1);
 }
