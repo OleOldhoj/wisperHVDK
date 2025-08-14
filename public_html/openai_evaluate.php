@@ -11,7 +11,7 @@
  */
 function openai_build_payload(string $transcript, string $assistantId, ?string $model = null): array
 {
-    $model = $model ?: getenv('OPENAI_MODEL') ?: 'gpt-4.1-mini';
+    $model = $model ?: getenv('OPENAI_MODEL') ?: 'gpt-4o';
     $schema = [
         'type' => 'object',
         'additionalProperties' => false,
@@ -132,7 +132,7 @@ function openai_evaluate(string $transcript, ?string $assistantId = null): array
     }
 
     $assistantId = $assistantId ?: getenv('OPENAI_ASSISTANT_ID') ?: 'asst_dxSC2TjWn45PX7JDdM8RpiyQ';
-    $model = getenv('OPENAI_MODEL') ?: 'gpt-4.1-mini';
+    $model = getenv('OPENAI_MODEL') ?: 'gpt-4o';
     $payload = openai_build_payload($transcript, $assistantId, $model);
 
     fwrite(STDERR, "Preparing OpenAI request (" . strlen($transcript) . " chars)\n");
