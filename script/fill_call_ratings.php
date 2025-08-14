@@ -4,9 +4,6 @@
 
 require_once __DIR__ . '/../public_html/openai_evaluate.php';
 
-// REM Use predefined OpenAI assistant unless overridden via OPENAI_ASSISTANT_ID
-$assistantId = getenv('OPENAI_ASSISTANT_ID') ?: 'asst_dxSC2TjWn45PX7JDdM8RpiyQ';
-
 /**
  * Process rows missing rating information.
  *
@@ -102,7 +99,7 @@ if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
         exit(1);
     }
 
-    $updated = process_missing_ratings($pdo, fn(string $talk): array => openai_evaluate($talk, $assistantId));
+    $updated = process_missing_ratings($pdo, fn(string $talk): array => openai_evaluate($talk));
     fwrite(STDOUT, "Updated {$updated} record(s)\n");
 }
 ?>
