@@ -13,7 +13,7 @@ function oa_init_ctx(
     string $api_key,
     ?string $assistant_id = null,
     string $base_url = 'https://api.openai.com/v1',
-    string $version_header = 'OpenAI-Beta: assistants=v1'
+    string $version_header = 'OpenAI-Beta: assistants=v2'
 ): array {
     return [
         'api_key'        => $api_key,

@@ -3,6 +3,25 @@
 Prototype demonstrating how a Laravel-compatible PHP script can invoke the
 `openai-whisper` Python package to transcribe audio files.
 
+## Configuration
+
+Copy `.env.example` to `.env` and define values for:
+
+
+- `OPENAI_API_KEY=test`
+- `OPENAI_ORG=test`
+- `OPENAI_PROJECT=test`
+- `OPENAI_ASSISTANT_ID=test`
+
+# PROD DB !!!!
+DB_CONNECTION=mysql
+DB_USERNAME=sales_call_ratings
+DB_PASSWORD=sales_call_ratings
+DB_DATABASE=sales_call_ratings
+DB_HOST=127.0.01
+
+
+
 ## Layout
 
 - `public_html/index.php` – PHP entry point that calls the Python helper.
