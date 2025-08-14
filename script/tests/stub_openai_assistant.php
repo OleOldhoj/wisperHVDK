@@ -2,6 +2,9 @@
 // REM Stub implementation for oa_* functions used in tests
 $__stub_calls = [];
 
+// No-op debug function for tests
+function oa_debug(string $message): void {}
+
 function oa_init_ctx(string $api_key, ?string $assistant_id = null, string $base_url = '', string $version_header = ''): array {
     global $__stub_calls;
     $__stub_calls[] = ['oa_init_ctx', func_get_args()];

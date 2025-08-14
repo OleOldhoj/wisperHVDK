@@ -148,57 +148,69 @@ function openai_build_headers(string $apiKey): array
 */
 function openai_evaluate(string $transcript, ?string $assistantId = null): array
 {
-    $apiKey = getenv('OPENAI_API_KEY');
-    if ($apiKey === false || $apiKey === '') {
-        return ['error' => 'missing API key'];
-    }
+    try {
+        $apiKey = getenv('OPENAI_API_KEY');
+        if ($apiKey === false || $apiKey === '') {
+            return ['error' => 'missing API key'];
+        }
 
-    $model = getenv('OPENAI_MODEL') ?: 'gpt-4o';
+        $model = getenv('OPENAI_MODEL') ?: 'gpt-4o';
 
-    // REM Initialise context and create assistant if not provided
-    $ctx = oa_init_ctx($apiKey, $assistantId);
-    $instructions = 'Assess the following sales call transcript. Rate each category on a '
-        . 'scale of 1-5 and provide brief notes for WhatWorked, WhatDidNotWork, '
-        . 'and a manager_comment. Reply strictly in JSON with keys '
-        . 'greeting_quality, needs_assessment, product_knowledge, persuasion, '
-        . 'closing, WhatWorked, WhatDidNotWork and manager_comment.';
+        // REM Initialise context and create assistant if not provided
+        $ctx = oa_init_ctx($apiKey, $assistantId);
+        oa_debug('Initialised context');
+        $instructions = 'Assess the following sales call transcript. Rate each category on a '
+            . 'scale of 1-5 and provide brief notes for WhatWorked, WhatDidNotWork, '
+            . 'and a manager_comment. Reply strictly in JSON with keys '
+            . 'greeting_quality, needs_assessment, product_knowledge, persuasion, '
+            . 'closing, WhatWorked, WhatDidNotWork and manager_comment.';
 
-    if (empty($assistantId)) {
-        $assistantId = oa_create_assistant($ctx, 'Sales Call Evaluator', $instructions, [], $model);
-    } else {
-        $ctx['assistant_id'] = $assistantId;
-    }
+        if (empty($assistantId)) {
+            $assistantId = oa_create_assistant($ctx, 'Sales Call Evaluator', $instructions, [], $model);
+            oa_debug('Created assistant ' . $assistantId);
+        } else {
+            $ctx['assistant_id'] = $assistantId;
+            oa_debug('Using assistant ' . $assistantId);
+        }
 
-    $threadId = oa_create_thread($ctx, $transcript, 'user');
-    $runId    = oa_run_thread($ctx, $threadId);
-    if (!$runId) {
-        return ['error' => 'run failed'];
-    }
+        $threadId = oa_create_thread($ctx, $transcript, 'user');
+        oa_debug('Created thread ' . $threadId);
+        $runId    = oa_run_thread($ctx, $threadId);
+        oa_debug('Run ID ' . $runId);
+        if (!$runId) {
+            return ['error' => 'run failed'];
+        }
 
-    $messages = oa_list_thread_messages($ctx, $threadId);
-    $text = null;
-    foreach ($messages as $msg) {
-        if (($msg['role'] ?? '') === 'assistant') {
-            foreach ($msg['content'] ?? [] as $content) {
-                $candidate = $content['text']['value'] ?? ($content['text'] ?? null);
-                if (is_string($candidate) && $candidate !== '') {
-                    $text = $candidate;
-                    break 2;
+        $messages = oa_list_thread_messages($ctx, $threadId);
+        oa_debug('Retrieved ' . count($messages) . ' message(s)');
+        $text = null;
+        foreach ($messages as $msg) {
+            if (($msg['role'] ?? '') === 'assistant') {
+                foreach ($msg['content'] ?? [] as $content) {
+                    $candidate = $content['text']['value'] ?? ($content['text'] ?? null);
+                    if (is_string($candidate) && $candidate !== '') {
+                        $text = $candidate;
+                        break 2;
+                    }
                 }
             }
         }
-    }
 
-    if (!is_string($text) || $text === '') {
-        return ['error' => 'No output text in response'];
-    }
+        if (!is_string($text) || $text === '') {
+            return ['error' => 'No output text in response'];
+        }
 
-    $data = json_decode($text, true);
-    if (!is_array($data)) {
-        return ['error' => 'Invalid JSON in response'];
-    }
+        $data = json_decode($text, true);
+        if (!is_array($data)) {
+            return ['error' => 'Invalid JSON in response'];
+        }
 
-    return $data;
+        oa_debug('Evaluation successful');
+        return $data;
+    } catch (Throwable $e) {
+        fwrite(STDERR, 'OpenAI evaluation failed: ' . $e->getMessage() . "\n");
+        return ['error' => $e->getMessage()];
+    }
 }
 
 if (realpath(__FILE__) === realpath($_SERVER['SCRIPT_FILENAME'])) {
