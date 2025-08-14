@@ -1,0 +1,11 @@
+CREATE TABLE sales_call_ratings (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    call_id VARCHAR(50) NOT NULL,
+    greeting_quality TINYINT UNSIGNED NOT NULL,
+    needs_assessment TINYINT UNSIGNED NOT NULL,
+    product_knowledge TINYINT UNSIGNED NOT NULL,
+    persuasion TINYINT UNSIGNED NOT NULL,
+    closing TINYINT UNSIGNED NOT NULL,
+    manager_comment TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
