@@ -8,8 +8,8 @@ if (($payload['assistant_id'] ?? '') !== 'asst_test') {
     exit(1);
 }
 
-$jsonSchema = $payload['response_format']['json_schema'] ?? null;
-if (($payload['response_format']['type'] ?? '') !== 'json_schema' || ($jsonSchema['name'] ?? '') !== 'sales_call_evaluation') {
+$jsonSchema = $payload['text']['format']['json_schema'] ?? null;
+if (($payload['text']['format']['type'] ?? '') !== 'json_schema' || ($jsonSchema['name'] ?? '') !== 'sales_call_evaluation') {
     fwrite(STDERR, "Missing or incorrect format name\n");
     exit(1);
 }
