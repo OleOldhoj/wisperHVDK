@@ -4,12 +4,14 @@
 /**
  * Build the OpenAI Responses API payload for a transcript using a fixed assistant.
  *
- * @param string $transcript  Full transcript to analyse
- * @param string $assistantId Assistant identifier
+ * @param string      $transcript  Full transcript to analyse
+ * @param string      $assistantId Assistant identifier
+ * @param string|null $model       Model name to use (defaults to env or gpt-4.1-mini)
  * @return array<string,mixed> Payload ready for JSON encoding
  */
-function openai_build_payload(string $transcript, string $assistantId): array
+function openai_build_payload(string $transcript, string $assistantId, ?string $model = null): array
 {
+    $model = $model ?: getenv('OPENAI_MODEL') ?: 'gpt-4.1-mini';
     $schema = [
         'type' => 'object',
         'additionalProperties' => false,
@@ -41,6 +43,7 @@ function openai_build_payload(string $transcript, string $assistantId): array
 
     return [
         'assistant_id' => $assistantId,
+        'model' => $model,
         // REM Responses API expects an array of messages
         'input' => [
             [
@@ -116,8 +119,11 @@ function openai_extract_output_text(array $json): ?string
  *
  * @param string      $transcript  Full transcript to analyse
  * @param string|null $assistantId Assistant identifier (defaults to env or built-in)
- * @return array<string,mixed> Associative array of evaluation fields or ['error'=>string]
- */
+ *
+ * The model is determined via the OPENAI_MODEL environment variable or defaults
+ * to `gpt-4.1-mini`.
+* @return array<string,mixed> Associative array of evaluation fields or ['error'=>string]
+*/
 function openai_evaluate(string $transcript, ?string $assistantId = null): array
 {
     $apiKey = getenv('OPENAI_API_KEY');
@@ -126,7 +132,8 @@ function openai_evaluate(string $transcript, ?string $assistantId = null): array
     }
 
     $assistantId = $assistantId ?: getenv('OPENAI_ASSISTANT_ID') ?: 'asst_dxSC2TjWn45PX7JDdM8RpiyQ';
-    $payload = openai_build_payload($transcript, $assistantId);
+    $model = getenv('OPENAI_MODEL') ?: 'gpt-4.1-mini';
+    $payload = openai_build_payload($transcript, $assistantId, $model);
 
     fwrite(STDERR, "Preparing OpenAI request (" . strlen($transcript) . " chars)\n");
     fwrite(STDERR, "Request payload: " . json_encode($payload) . "\n");
