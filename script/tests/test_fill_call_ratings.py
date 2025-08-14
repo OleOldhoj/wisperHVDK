@@ -18,7 +18,8 @@ def test_fill_call_ratings(tmp_path: Path) -> None:
             closing INTEGER NOT NULL DEFAULT 0,
             WhatWorked TEXT NOT NULL DEFAULT '',
             WhatDidNotWork TEXT NOT NULL DEFAULT '',
-            manager_comment TEXT
+            manager_comment TEXT,
+            warning_comment TEXT
         )
         """
     )
@@ -40,8 +41,8 @@ def test_fill_call_ratings(tmp_path: Path) -> None:
 
     conn = sqlite3.connect(db_file)
     row = conn.execute(
-        "SELECT greeting_quality, needs_assessment, product_knowledge, persuasion, closing, WhatWorked, WhatDidNotWork, manager_comment FROM sales_call_ratings"
+        "SELECT greeting_quality, needs_assessment, product_knowledge, persuasion, closing, WhatWorked, WhatDidNotWork, manager_comment, warning_comment FROM sales_call_ratings"
     ).fetchone()
     conn.close()
 
-    assert row == (3, 4, 5, 2, 1, "good knowledge", "weak closing", "improve closing")
+    assert row == (3, 4, 5, 2, 1, "good knowledge", "weak closing", "improve closing", "check closing")

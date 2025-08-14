@@ -31,6 +31,7 @@ function openai_build_payload(string $transcript, string $assistantId, ?string $
             'WhatWorked' => ['type' => 'string'],
             'WhatDidNotWork' => ['type' => 'string'],
             'manager_comment' => ['type' => 'string'],
+            'warning_comment' => ['type' => 'string'],
         ],
         'required' => [
             'greeting_quality',
@@ -41,12 +42,13 @@ function openai_build_payload(string $transcript, string $assistantId, ?string $
             'WhatWorked',
             'WhatDidNotWork',
             'manager_comment',
+            'warning_comment',
         ],
     ];
 
     $prompt = 'Assess the following sales call transcript. Rate each category on a '
         . 'scale of 1-5 and provide brief notes for WhatWorked, WhatDidNotWork, '
-        . 'and a manager_comment. Transcript: ' . $transcript;
+        . 'and both a manager_comment and a warning_comment. Transcript: ' . $transcript;
 
     return [
         'assistant_id' => $assistantId,
@@ -161,9 +163,9 @@ function openai_evaluate(string $transcript, ?string $assistantId = null): array
         oa_debug('Initialised context');
         $instructions = 'Assess the following sales call transcript. Rate each category on a '
             . 'scale of 1-5 and provide brief notes for WhatWorked, WhatDidNotWork, '
-            . 'and a manager_comment. Reply strictly in JSON with keys '
+            . 'and both a manager_comment and a warning_comment. Reply strictly in JSON with keys '
             . 'greeting_quality, needs_assessment, product_knowledge, persuasion, '
-            . 'closing, WhatWorked, WhatDidNotWork and manager_comment.';
+            . 'closing, WhatWorked, WhatDidNotWork, manager_comment and warning_comment.';
 
         if (empty($assistantId)) {
             $assistantId = oa_create_assistant($ctx, 'Sales Call Evaluator', $instructions, [], $model);

@@ -19,7 +19,7 @@ function process_missing_ratings(PDO $pdo, callable $evaluate): int
     $select = "SELECT id, WisperTALK FROM sales_call_ratings "
         . "WHERE greeting_quality = 0 OR needs_assessment = 0 OR "
         . "product_knowledge = 0 OR persuasion = 0 OR closing = 0 OR "
-        . "WhatWorked = '' OR WhatDidNotWork = '' OR manager_comment IS NULL";
+        . "WhatWorked = '' OR WhatDidNotWork = '' OR manager_comment IS NULL OR warning_comment IS NULL";
     fwrite(STDERR, "Running query: {$select}\n");
     $rows = $pdo->query($select)->fetchAll(PDO::FETCH_ASSOC);
     fwrite(STDERR, "Found " . count($rows) . " row(s) needing evaluation\n");
@@ -33,7 +33,8 @@ function process_missing_ratings(PDO $pdo, callable $evaluate): int
         . "closing = :closing, "
         . "WhatWorked = :WhatWorked, "
         . "WhatDidNotWork = :WhatDidNotWork, "
-        . "manager_comment = :manager_comment "
+        . "manager_comment = :manager_comment, "
+        . "warning_comment = :warning_comment "
         . "WHERE id = :id"
     );
 
@@ -57,6 +58,7 @@ function process_missing_ratings(PDO $pdo, callable $evaluate): int
             ':WhatWorked' => (string) ($result['WhatWorked'] ?? ''),
             ':WhatDidNotWork' => (string) ($result['WhatDidNotWork'] ?? ''),
             ':manager_comment' => $result['manager_comment'] ?? null,
+            ':warning_comment' => $result['warning_comment'] ?? null,
             ':id' => (int) $row['id'],
         ]);
         $count++;

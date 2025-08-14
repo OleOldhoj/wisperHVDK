@@ -37,7 +37,7 @@ function oa_list_thread_messages(array $ctx, string $thread_id): array {
         [
             'role' => 'assistant',
             'content' => [
-                ['text' => ['value' => '{"greeting_quality":5,"needs_assessment":4,"product_knowledge":3,"persuasion":4,"closing":5,"WhatWorked":"good","WhatDidNotWork":"none","manager_comment":"nice"}']]
+                ['text' => ['value' => '{"greeting_quality":5,"needs_assessment":4,"product_knowledge":3,"persuasion":4,"closing":5,"WhatWorked":"good","WhatDidNotWork":"none","manager_comment":"nice","warning_comment":"caution"}']]
             ],
         ],
     ];
