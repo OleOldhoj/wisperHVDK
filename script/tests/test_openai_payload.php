@@ -1,7 +1,12 @@
 <?php
 require_once __DIR__ . '/../../public_html/openai_evaluate.php';
 
-$payload = openai_build_payload('sample transcript');
+$payload = openai_build_payload('sample transcript', 'asst_test');
+
+if (($payload['assistant_id'] ?? '') !== 'asst_test') {
+    fwrite(STDERR, "Assistant ID not set correctly\n");
+    exit(1);
+}
 
 $jsonSchema = $payload['response_format']['json_schema'] ?? null;
 if (($payload['response_format']['type'] ?? '') !== 'json_schema' || ($jsonSchema['name'] ?? '') !== 'sales_call_evaluation') {
