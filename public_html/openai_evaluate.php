@@ -1,6 +1,13 @@
 <?php
 // REM Evaluate sales call transcripts using the OpenAI Responses API
 
+// REM Load the native assistant helper, allowing tests to override the path
+if (!defined('OA_LIB_PATH')) {
+    require_once __DIR__ . '/openai_assistant.php';
+} else {
+    require_once OA_LIB_PATH;
+}
+
 /**
  * Build the OpenAI Responses API payload for a transcript using a fixed assistant.
  *
@@ -146,49 +153,48 @@ function openai_evaluate(string $transcript, ?string $assistantId = null): array
         return ['error' => 'missing API key'];
     }
 
-    $assistantId = $assistantId ?: getenv('OPENAI_ASSISTANT_ID') ?: 'asst_dxSC2TjWn45PX7JDdM8RpiyQ';
     $model = getenv('OPENAI_MODEL') ?: 'gpt-4o';
-    $payload = openai_build_payload($transcript, $assistantId, $model);
 
-    fwrite(STDERR, "Preparing OpenAI request (" . strlen($transcript) . " chars)\n");
-    fwrite(STDERR, "Request payload: " . json_encode($payload) . "\n");
+    // REM Initialise context and create assistant if not provided
+    $ctx = oa_init_ctx($apiKey, $assistantId);
+    $instructions = 'Assess the following sales call transcript. Rate each category on a '
+        . 'scale of 1-5 and provide brief notes for WhatWorked, WhatDidNotWork, '
+        . 'and a manager_comment. Reply strictly in JSON with keys '
+        . 'greeting_quality, needs_assessment, product_knowledge, persuasion, '
+        . 'closing, WhatWorked, WhatDidNotWork and manager_comment.';
 
-    $ch = curl_init('https://api.openai.com/v1/responses');
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => openai_build_headers($apiKey),
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode($payload),
-    ]);
-
-    $response = curl_exec($ch);
-    if ($response === false) {
-        $error = curl_error($ch);
-        fwrite(STDERR, "cURL error: {$error}\n");
-        curl_close($ch);
-        return ['error' => $error];
-    }
-    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    fwrite(STDERR, "HTTP status: {$status}\n");
-    fwrite(STDERR, "Raw response: {$response}\n");
-
-    $json = json_decode($response, true);
-    if ($status !== 200 || !is_array($json)) {
-        fwrite(STDERR, "API request failed with status {$status}\n");
-        return ['error' => 'API request failed'];
+    if (empty($assistantId)) {
+        $assistantId = oa_create_assistant($ctx, 'Sales Call Evaluator', $instructions, [], $model);
+    } else {
+        $ctx['assistant_id'] = $assistantId;
     }
 
-    $text = openai_extract_output_text($json);
+    $threadId = oa_create_thread($ctx, $transcript, 'user');
+    $runId    = oa_run_thread($ctx, $threadId);
+    if (!$runId) {
+        return ['error' => 'run failed'];
+    }
+
+    $messages = oa_list_thread_messages($ctx, $threadId);
+    $text = null;
+    foreach ($messages as $msg) {
+        if (($msg['role'] ?? '') === 'assistant') {
+            foreach ($msg['content'] ?? [] as $content) {
+                $candidate = $content['text']['value'] ?? ($content['text'] ?? null);
+                if (is_string($candidate) && $candidate !== '') {
+                    $text = $candidate;
+                    break 2;
+                }
+            }
+        }
+    }
+
     if (!is_string($text) || $text === '') {
-        fwrite(STDERR, "No output text in response\n");
         return ['error' => 'No output text in response'];
     }
 
     $data = json_decode($text, true);
     if (!is_array($data)) {
-        fwrite(STDERR, "Invalid JSON in response: {$text}\n");
         return ['error' => 'Invalid JSON in response'];
     }
 
