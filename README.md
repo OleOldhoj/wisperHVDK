@@ -24,7 +24,8 @@ DB_HOST=127.0.01
 
 ## Layout
 
-- `public_html/index.php` – PHP entry point that calls the Python helper.
+- `public_html/index.php` – Laravel front controller
+- `public_html/transcribe.php` – PHP entry point that calls the Python helper.
 - `public_html/openai_transcribe.php` – PHP script calling OpenAI's Whisper API and
   returning a timestamped transcript with CRLF line endings.
 
@@ -62,13 +63,13 @@ Place this repository at `C:\\wisper`. To transcribe all `.wav` files under
 `C:\\wisper\\sound` run:
 
 ```bash
-php public_html/index.php
+php public_html/transcribe.php
 ```
 
 To transcribe a single file:
 
 ```bash
-php public_html/index.php path="C:\\wisper\\07\\09\\rg-900-+4550499106-20250709-131344-1752059605.163788.wav"
+php public_html/transcribe.php path="C:\\wisper\\07\\09\\rg-900-+4550499106-20250709-131344-1752059605.163788.wav"
 ```
 
 The script prints the transcription text to standard output with timestamps and
@@ -104,7 +105,7 @@ OPENAI_API_KEY=your_key php script/fill_call_ratings.php
 A cron entry can run the evaluation periodically and persist a timestamped log:
 
 ```cron
-*/5 * * * * cd /path/to/wisperHVDK && OPENAI_API_KEY=your_key php script/cron_fill_call_ratings.php >> /var/log/wisper_ratings.log 2>&1
+1 */5 * * * * cd /path/to/wisperHVDK && OPENAI_API_KEY=your_key php script/1234_cron_fill_call_ratings.php >> /var/log/wisper_ratings.log 2>&1
 ```
 
 The evaluation agent uses the OpenAI Responses API
@@ -126,7 +127,7 @@ The script prints debug information and returns the path of the generated
 `*.openai.txt` file. A cron entry can run the conversion automatically:
 
 ```cron
-* * * * * cd /path/to/wisperHVDK && php script/convertThis.php "file:///C:/wisper/sound/07/01/example.wav"
+2 * * * * * cd /path/to/wisperHVDK && php script/convertThis.php "file:///C:/wisper/sound/07/01/example.wav"
 ```
 
 To delete `.wav` files shorter than one minute within a directory (default is `sound`):
@@ -141,4 +142,5 @@ php script/delete_short_files.php /path/to/dir
 pytest
 php script/tests/test_fill_wispertalk.php
 php script/tests/test_fill_call_ratings.php
+php script/tests/test_cron_prefix.php
 ```
