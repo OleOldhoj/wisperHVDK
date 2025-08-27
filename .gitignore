@@ -6,3 +6,5 @@ script/__pycache__/
 /vendor/
 composer.lock
 script/tests/__pycache__/
+/bootstrap/cache
+/storage/logs
