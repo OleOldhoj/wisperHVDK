@@ -136,6 +136,12 @@ To delete `.wav` files shorter than one minute within a directory (default is `s
 php script/delete_short_files.php /path/to/dir
 ```
 
+To insert short WAV files into the database:
+
+```bash
+php artisan insert:sound-files /path/to/dir
+```
+
 ## Testing
 
 ```bash
