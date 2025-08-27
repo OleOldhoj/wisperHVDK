@@ -14,12 +14,13 @@ def test_fill_wispertalk() -> None:
             CREATE TABLE sales_call_ratings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 filepath TEXT,
-                WisperTALK TEXT
+                WisperTALK TEXT,
+                Dept TEXT
             )
             """
         )
         conn.execute(
-            "INSERT INTO sales_call_ratings (filepath) VALUES ('dummy.wav')"
+            "INSERT INTO sales_call_ratings (filepath, Dept) VALUES ('dummy.wav', 'Sales')"
         )
         conn.commit()
         conn.close()

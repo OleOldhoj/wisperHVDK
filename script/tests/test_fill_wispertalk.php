@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../fill_wispertalk.php';
+require_once __DIR__ . '/../../app/Support/WisperTalk.php';
 
 $database = getenv('DB_DATABASE') ?: ':memory:';
 $dsn = 'sqlite:' . $database;
@@ -9,9 +9,10 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $pdo->exec("CREATE TABLE IF NOT EXISTS sales_call_ratings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filepath TEXT,
-    WisperTALK TEXT
+    WisperTALK TEXT,
+    Dept TEXT
 )");
-$pdo->exec("INSERT INTO sales_call_ratings (filepath) VALUES ('dummy.wav')");
+$pdo->exec("INSERT INTO sales_call_ratings (filepath, Dept) VALUES ('dummy.wav', 'Sales')");
 
 process_missing_transcriptions($pdo, function (string $path): string {
     return 'stub text';

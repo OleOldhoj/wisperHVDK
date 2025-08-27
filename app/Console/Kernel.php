@@ -13,6 +13,11 @@ class Kernel extends ConsoleKernel
         $schedule->command('fill:call-ratings')
             ->everyFiveMinutes()
             ->appendOutputTo('/var/log/wisper_ratings.log');
+
+        // 2. Schedule WisperTALK transcription for Sales department.
+        $schedule->command('fill:wispertalk')
+            ->everyFiveMinutes()
+            ->appendOutputTo('/var/log/wisper_transcribe.log');
     }
 
     protected function commands(): void

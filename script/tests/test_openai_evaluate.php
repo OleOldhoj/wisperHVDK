@@ -1,6 +1,6 @@
 <?php
 define('OA_LIB_PATH', __DIR__ . '/stub_openai_assistant.php');
-require_once __DIR__ . '/../../public_html/openai_evaluate.php';
+require_once __DIR__ . '/../../app/Support/OpenAiEvaluate.php';
 
 putenv('OPENAI_API_KEY=dummy');
 
