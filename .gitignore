@@ -3,3 +3,6 @@ script/__pycache__/
 /*.rar
 /sound/*/*/*.txt
 /.env
+/vendor/
+composer.lock
+script/tests/__pycache__/
