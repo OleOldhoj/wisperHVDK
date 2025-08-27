@@ -33,6 +33,10 @@ function format_transcript_segments(array $segments): string
  */
 function openai_transcribe(string $audioPath): string
 {
+    $fake = getenv('OPENAI_TRANSCRIBE_FAKE');
+    if ($fake !== false) {
+        return $fake;
+    }
     if (!file_exists($audioPath)) {
         return 'Error: audio file not found';
     }

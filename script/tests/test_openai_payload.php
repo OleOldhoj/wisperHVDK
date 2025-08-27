@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../public_html/openai_evaluate.php';
+require_once __DIR__ . '/../../app/Support/OpenAiEvaluate.php';
 
 putenv('OPENAI_MODEL=test-model');
 $payload = openai_build_payload('sample transcript', 'asst_test');

@@ -39,7 +39,7 @@ DB_HOST=127.0.01
   using Whisper's pricing (`$0.006` per minute).
 - `script/rename_recording.php` – renames call recordings by mapping extension numbers to contact names; supports filenames like
  `out-123-0-8504-20250704-...` and `exten-8504-unknown-20250701-...`.
-- `script/fill_wispertalk.php` – populates the `WisperTALK` column in `sales_call_ratings` using MySQL (default DB `salescallsanalyse`) and OpenAI's Whisper API for entries missing transcripts; emits verbose debug to STDERR.
+- `app/Support/WisperTalk.php` – helper used by the `fill:wispertalk` Artisan command to populate the `WisperTALK` column in `sales_call_ratings` for Sales department entries; emits verbose debug to STDERR.
 - `script/fill_call_ratings.php` – evaluates `WisperTALK` transcripts using the
   OpenAI assistant `asst_dxSC2TjWn45PX7JDdM8RpiyQ` via the Responses API and
   updates scoring fields such as `greeting_quality` and `WhatWorked`. The
@@ -93,8 +93,11 @@ OPENAI_API_KEY=your_key php public_html/openai_transcribe.php path/to/audio.wav
 To populate missing `WisperTALK` values in the database:
 
 ```bash
-OPENAI_API_KEY=your_key php script/fill_wispertalk.php
+OPENAI_API_KEY=your_key php artisan fill:wispertalk
 ```
+
+The Laravel scheduler executes `fill:wispertalk` every five minutes and appends
+output to `/var/log/wisper_transcribe.log`.
 
 To score calls and fill in rating fields:
 
@@ -111,8 +114,8 @@ A cron entry can run the evaluation periodically and persist a timestamped log:
 The evaluation agent uses the OpenAI Responses API
 (`https://api.openai.com/v1/responses`) with the assistant
 `asst_dxSC2TjWn45PX7JDdM8RpiyQ` and the `sales_call_evaluation` schema defined
-in `public_html/openai_evaluate.php`. Override the assistant via
-`OPENAI_ASSISTANT_ID` if required.
+in `app/Support/OpenAiEvaluate.php` (used by `public_html/openai_evaluate.php`).
+Override the assistant via `OPENAI_ASSISTANT_ID` if required.
 
 ### Convert and save a transcript
 
