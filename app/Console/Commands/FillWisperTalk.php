@@ -29,7 +29,7 @@ class FillWisperTalk extends Command
             ->where(function ($q) {
                 $q->whereNull('WisperTALK')->orWhere('WisperTALK', '');
             })
-            ->where('length_sec', '>', 60)
+            ->where('length_sec', '>', 120)
             ->where('Dept', 'Sales')
             ->orderBy('id')
             ->limit(50)
@@ -73,7 +73,7 @@ class FillWisperTalk extends Command
             
             print_r($text);
 
-            $this->line('Transcription preview: ' . substr($text, 0, 80));
+            //$this->line('Transcription preview: ' . substr($text, 0, 80));
             $this->line('Updating database...');
 
             DB::table('sales_call_ratings')
