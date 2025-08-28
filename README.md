@@ -27,7 +27,8 @@ DB_HOST=127.0.01
 - `public_html/index.php` – Laravel front controller
 - `public_html/transcribe.php` – PHP entry point that calls the Python helper.
 - `public_html/openai_transcribe.php` – PHP script calling OpenAI's Whisper API and
-  returning a timestamped transcript with CRLF line endings.
+  returning a timestamped transcript with CRLF line endings. WAV files over
+  ~13 MB are converted to MP3 automatically to avoid API upload limits.
 
 - `script/convert_all.bat` – Windows helper to batch transcribe `.wav` files; skips files with an existing non-empty `.txt` transcript and produces an empty `.txt` for silent audio.
 - `script/whisper_transcribe.py` – Python script performing the transcription. It
@@ -89,6 +90,9 @@ To transcribe a file using the OpenAI API:
 ```bash
 OPENAI_API_KEY=your_key php public_html/openai_transcribe.php path/to/audio.wav
 ```
+
+If the input exceeds half of the API's 25 MB limit, the script compresses the
+audio to MP3 before uploading.
 
 To populate missing `WisperTALK` values in the database:
 
