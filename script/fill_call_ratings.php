@@ -5,8 +5,8 @@
 require_once __DIR__ . '/../app/Support/OpenAiEvaluate.php';
 require_once __DIR__ . '/db.php';
 
-// REM Use predefined OpenAI assistant unless overridden via OPENAI_ASSISTANT_ID
-$assistantId = getenv('OPENAI_ASSISTANT_ID') ?: 'asst_dxSC2TjWn45PX7JDdM8RpiyQ';
+// REM Use predefined OpenAI assistant only when OPENAI_ASSISTANT_ID is set
+$assistantId = getenv('OPENAI_ASSISTANT_ID') ?: null;
 
 /**
  * Process rows missing rating information.

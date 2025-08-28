@@ -18,6 +18,11 @@ class Kernel extends ConsoleKernel
         $schedule->command('fill:wispertalk')
             ->everyFiveMinutes()
             ->appendOutputTo('/var/log/wisper_transcribe.log');
+
+        // 3. Evaluate existing WisperTALK transcripts.
+        $schedule->command('evaluate:wispertalk')
+            ->everyFiveMinutes()
+            ->appendOutputTo('/var/log/wisper_evaluate.log');
     }
 
     protected function commands(): void
