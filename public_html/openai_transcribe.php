@@ -91,11 +91,17 @@ function transcribe_with_chunks(string $audioPath, callable $transcribeFn): stri
         $maxSeconds = 900; // 15 minutes default limit
     }
 
-    $size    = filesize($prepared);
-    $duration = $size !== false ? (int) ceil($size / 8000) : 0; // ~8000 bytes/sec
+    $bytesPerSecond = match (strtolower(pathinfo($prepared, PATHINFO_EXTENSION))) {
+        'wav' => 32000, // 16 kHz mono PCM ≈ 32 kB/s
+        'mp3' => 8000,  // 64 kbps MP3 ≈ 8 kB/s
+        default => 16000,
+    };
+
+    $size     = filesize($prepared);
+    $duration = $size !== false ? (int) ceil($size / $bytesPerSecond) : 0;
 
     if (($size !== false && $size > $maxSize) || $duration > $maxSeconds) {
-        $seconds = min($maxSeconds, max(1, (int) floor($maxSize / 8000)));
+        $seconds = min($maxSeconds, max(1, (int) floor($maxSize / $bytesPerSecond)));
         $pattern = tempnam(sys_get_temp_dir(), 'wisper_chunk');
         if ($pattern === false) {
             if ($tmp && file_exists($tmp)) {
