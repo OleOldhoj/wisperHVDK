@@ -100,6 +100,15 @@ function transcribe_with_chunks(string $audioPath, callable $transcribeFn): stri
     $size     = filesize($prepared);
     $duration = $size !== false ? (int) ceil($size / $bytesPerSecond) : 0;
 
+    fwrite(STDERR, sprintf(
+        "transcribe_with_chunks: prepared=%s size=%d bytes duration=%d sec maxSize=%d maxSeconds=%d\n",
+        $prepared,
+        $size === false ? -1 : $size,
+        $duration,
+        $maxSize,
+        $maxSeconds
+    ));
+
     if (($size !== false && $size > $maxSize) || $duration > $maxSeconds) {
         $seconds = min($maxSeconds, max(1, (int) floor($maxSize / $bytesPerSecond)));
         $pattern = tempnam(sys_get_temp_dir(), 'wisper_chunk');
@@ -118,12 +127,15 @@ function transcribe_with_chunks(string $audioPath, callable $transcribeFn): stri
             $seconds,
             escapeshellarg($pattern)
         );
+        fwrite(STDERR, "transcribe_with_chunks: splitting cmd={$cmd}\n");
         exec($cmd, $out, $code);
+        fwrite(STDERR, "transcribe_with_chunks: ffmpeg exit code {$code}\n");
         if ($code !== 0) {
+            fwrite(STDERR, "transcribe_with_chunks: ffmpeg output=" . implode("\n", $out) . "\n");
             if ($tmp && file_exists($tmp)) {
                 @unlink($tmp);
             }
-            return 'Error: failed to split audio';
+            return 'Error: failed to split audio (code ' . $code . ')';
         }
         $chunks = glob(str_replace('%03d', '*', $pattern)) ?: [];
         sort($chunks);
