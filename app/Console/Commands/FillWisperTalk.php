@@ -14,7 +14,8 @@ class FillWisperTalk extends Command
         // Read config, never env() here
         $apiKey = (string) config('openai.api_key', '');
         $model  = (string) config('openai.audio_model', 'gpt-4o-transcribe');
-
+        
+        
         $this->info('Starting fill:wispertalk command');
 
         if ($apiKey === '') {
@@ -72,10 +73,10 @@ class FillWisperTalk extends Command
             DB::table('sales_call_ratings')
                 ->where('id', $row->id)
                 ->update([
-                    'WisperTALK' => $text,
+                    'WisperTALK' => "$text",
                 ]);
 
-                print_r($text);
+                
             $this->info("OK, id {$row->id}");
         }
 
