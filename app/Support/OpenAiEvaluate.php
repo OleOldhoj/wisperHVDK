@@ -159,6 +159,11 @@ function openai_evaluate(string $transcript, ?string $assistantId = null): array
 
         $model = getenv('OPENAI_MODEL') ?: 'gpt-4o';
 
+        // REM Allow OPENAI_ASSISTANT_ID to define the assistant when not passed
+        if (empty($assistantId)) {
+            $assistantId = getenv('OPENAI_ASSISTANT_ID') ?: null;
+        }
+
         // REM Initialise context and create assistant if not provided
         $ctx = oa_init_ctx($apiKey, $assistantId);
         oa_debug('Initialised context');

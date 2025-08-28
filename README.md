@@ -129,6 +129,15 @@ The evaluation agent uses the OpenAI Responses API
 in `app/Support/OpenAiEvaluate.php` (used by `public_html/openai_evaluate.php`).
 Override the assistant via `OPENAI_ASSISTANT_ID` if required.
 
+To analyse existing WisperTALK transcripts and print ratings:
+
+```bash
+OPENAI_API_KEY=your_key php artisan evaluate:wispertalk
+```
+
+The scheduler runs `evaluate:wispertalk` every five minutes and appends output
+to `/var/log/wisper_evaluate.log`.
+
 ### Convert and save a transcript
 
 Use `script/convertThis.php` to create a text transcript next to an audio file.
