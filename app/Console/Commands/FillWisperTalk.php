@@ -50,7 +50,7 @@ class FillWisperTalk extends Command
 
             // If response looks like SRT, parse, else use as is
             $text = $this->looksLikeSrt($resp) ? $this->parseSrtToLines($resp) : (string) $resp;
-
+            print_r($text );
             DB::table('sales_call_ratings')
                 ->where('id', $row->id)
                 ->update([
