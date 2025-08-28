@@ -101,6 +101,9 @@ To populate missing `WisperTALK` values in the database:
 OPENAI_API_KEY=your_key php artisan fill:wispertalk
 ```
 
+The command prints detailed progress for each audio file, including file checks,
+transcription steps and database updates.
+
 The Laravel scheduler executes `fill:wispertalk` every five minutes and appends
 output to `/var/log/wisper_transcribe.log`.
 

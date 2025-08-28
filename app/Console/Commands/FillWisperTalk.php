@@ -14,14 +14,16 @@ class FillWisperTalk extends Command
         // Read config, never env() here
         $apiKey = (string) config('openai.api_key', '');
         $model  = (string) config('openai.audio_model', 'gpt-4o-transcribe');
-        
-        
+
+        $this->info('Starting fill:wispertalk command');
+
         if ($apiKey === '') {
             $this->error('Missing OPENAI_API_KEY, set it in .env and run: php artisan config:clear && php artisan config:cache');
             return 1;
         }
 
         $this->info('Model: ' . $model);
+        $this->info('Querying database for missing transcriptions');
 
         $rows = DB::table('sales_call_ratings')
             ->where(function ($q) {
@@ -33,13 +35,22 @@ class FillWisperTalk extends Command
             ->limit(50)
             ->get();
 
+        $this->info('Found ' . $rows->count() . ' row(s) to process');
+
         foreach ($rows as $row) {
             $path = (string) $row->filepath;
+
+            $this->line(str_repeat('-', 40));
+            $this->info("Processing id {$row->id}");
+            $this->line("File path: {$path}");
 
             if (!is_file($path)) {
                 $this->warn("File not found, {$path}");
                 continue;
             }
+
+            $this->line('File exists, size: ' . filesize($path) . ' bytes');
+            $this->line('Transcribing via OpenAI...');
 
             // Ask for SRT to get timestamps, fall back if model does not support it
             $resp = $this->openaiTranscribe($apiKey, $path, $model, 'srt');
@@ -48,17 +59,26 @@ class FillWisperTalk extends Command
                 continue;
             }
 
+            $this->line('Raw response length: ' . strlen($resp));
+
             // If response looks like SRT, parse, else use as is
-            $text = $this->looksLikeSrt($resp) ? $this->parseSrtToLines($resp) : (string) $resp;
-            print_r($text );
+            $isSrt = $this->looksLikeSrt($resp);
+            $this->line('Looks like SRT: ' . ($isSrt ? 'yes' : 'no'));
+            $text = $isSrt ? $this->parseSrtToLines($resp) : (string) $resp;
+
+            $this->line('Transcription preview: ' . substr($text, 0, 80));
+            $this->line('Updating database...');
+
             DB::table('sales_call_ratings')
                 ->where('id', $row->id)
                 ->update([
                     'WisperTALK' => $text,
                 ]);
-                print_r($text);
+
             $this->info("OK, id {$row->id}");
         }
+
+        $this->info('Completed fill:wispertalk command');
 
         return 0;
     }
@@ -142,18 +162,24 @@ class FillWisperTalk extends Command
             return 'Error: audio file not found';
         }
 
+        fwrite(STDERR, "openaiTranscribe: path={$audioPath} model={$model} format={$responseFormat}\n");
+
         // Ensure chunk helper functions are loaded
         require_once base_path('public_html/openai_transcribe.php');
+        fwrite(STDERR, "openaiTranscribe: helper loaded\n");
 
         $transcriber = function (string $path) use ($apiKey, $audioPath, $model, $responseFormat) {
+            fwrite(STDERR, "openaiTranscribe: calling OpenAI for chunk {$path}\n");
             $resp = $this->callOpenAI($apiKey, $path, $model, $responseFormat);
             if ($resp['ok']) {
+                fwrite(STDERR, "openaiTranscribe: received OK response\n");
                 return (string) $resp['body'];
             }
 
             // If model rejects the format, fall back to 'text'
             $bodyLower = strtolower($resp['body']);
             if ($resp['status'] === 400 && str_contains($bodyLower, 'response_format') && str_contains($bodyLower, 'unsupported')) {
+                fwrite(STDERR, "openaiTranscribe: format unsupported, retrying with text\n");
                 $fallback = $this->callOpenAI($apiKey, $path, $model, 'text');
                 if ($fallback['ok']) {
                     return (string) $fallback['body'];
@@ -161,6 +187,7 @@ class FillWisperTalk extends Command
                 return 'Error: HTTP ' . $fallback['status'] . ', ' . substr($fallback['body'], 0, 2000);
             }
 
+            fwrite(STDERR, "openaiTranscribe: error HTTP {$resp['status']}\n");
             return 'Error: HTTP ' . $resp['status'] . ', ' . substr($resp['body'], 0, 2000);
         };
 
@@ -169,6 +196,8 @@ class FillWisperTalk extends Command
 
     private function callOpenAI(string $apiKey, string $audioPath, string $model, string $responseFormat): array
     {
+        fwrite(STDERR, "callOpenAI: sending {$audioPath} with format {$responseFormat}\n");
+
         $cfile = curl_file_create(
             $audioPath,
             $this->detectMime($audioPath),
@@ -178,7 +207,7 @@ class FillWisperTalk extends Command
         $post = [
             'model'           => 'whisper-1',
             'file'            => $cfile,
-            'response_format' => "srt",
+            'response_format' => $responseFormat,
             // 'language'      => 'da', // set if you know it is Danish
             // 'temperature'   => '0',
         ];
@@ -197,11 +226,13 @@ class FillWisperTalk extends Command
         if ($body === false) {
             $err = curl_error($ch);
             curl_close($ch);
+            fwrite(STDERR, "callOpenAI: cURL error {$err}\n");
             return ['ok' => false, 'status' => 0, 'body' => 'cURL error, ' . $err];
         }
         $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
+        fwrite(STDERR, "callOpenAI: HTTP {$status}\n");
         return ['ok' => $status === 200, 'status' => $status, 'body' => (string) $body];
     }
 
