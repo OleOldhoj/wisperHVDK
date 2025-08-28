@@ -86,10 +86,16 @@ function transcribe_with_chunks(string $audioPath, callable $transcribeFn): stri
         $maxSize = 26214400; // 25 MB default limit
     }
 
-    $size = filesize($prepared);
-    if ($size !== false && $size > $maxSize) {
-        // Estimate duration for a 64 kbps MP3 (~8000 bytes/sec)
-        $seconds = max(1, (int) floor($maxSize / 8000));
+    $maxSeconds = (int) getenv('OPENAI_MAX_DURATION');
+    if ($maxSeconds <= 0) {
+        $maxSeconds = 900; // 15 minutes default limit
+    }
+
+    $size    = filesize($prepared);
+    $duration = $size !== false ? (int) ceil($size / 8000) : 0; // ~8000 bytes/sec
+
+    if (($size !== false && $size > $maxSize) || $duration > $maxSeconds) {
+        $seconds = min($maxSeconds, max(1, (int) floor($maxSize / 8000)));
         $pattern = tempnam(sys_get_temp_dir(), 'wisper_chunk');
         if ($pattern === false) {
             if ($tmp && file_exists($tmp)) {
