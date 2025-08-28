@@ -51,7 +51,7 @@ class FillWisperTalk extends Command
 
             $this->line('File exists, size: ' . filesize($path) . ' bytes');
             $this->line('Transcribing via OpenAI...');
-
+            $this->line('---- take takes ' . $row->length_sec . ' secs ');
             // Ask for SRT to get timestamps, fall back if model does not support it
             $resp = $this->openaiTranscribe($apiKey, $path, $model, 'srt');
             if (str_starts_with($resp, 'Error:')) {
@@ -70,9 +70,9 @@ class FillWisperTalk extends Command
             $isSrt = $this->looksLikeSrt($resp);
             $this->line('Looks like SRT: ' . ($isSrt ? 'yes' : 'no'));
             $text = $isSrt ? $this->parseSrtToLines($resp) : (string) $resp;
-            
+            print("\n");
             print_r($text);
-
+            print("\n");
             //$this->line('Transcription preview: ' . substr($text, 0, 80));
             $this->line('Updating database...');
 
