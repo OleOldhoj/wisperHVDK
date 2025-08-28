@@ -30,7 +30,7 @@ class FillWisperTalk extends Command
             ->where(function ($q) {
                 $q->whereNull('WisperTALK')->orWhere('WisperTALK', '');
             })
-            ->where('length_sec', '>', 40)
+            ->where('length_sec', '>', 60)
             ->where('Dept', 'Sales')
             ->orderBy('id')
             ->limit(50)
