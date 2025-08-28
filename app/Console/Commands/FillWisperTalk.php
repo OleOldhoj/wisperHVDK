@@ -50,12 +50,23 @@ class FillWisperTalk extends Command
 
             // If response looks like SRT, parse, else use as is
             $text = $this->looksLikeSrt($resp) ? $this->parseSrtToLines($resp) : (string) $resp;
-            print_r($text );
-            DB::table('sales_call_ratings')
+            
+
+                $text = str_replace('"' , "'" ,$text );
+                $text = str_replace('--' , "-" ,$text );
+                print_r($text );
+            $SQL = "UPDATE sales_call_ratings set WisperTALK = '".$text."' where id = ".$row->id;   
+            
+            $result = DB::update($SQL);
+
+/*
+        DB::table('sales_call_ratings')
                 ->where('id', $row->id)
                 ->update([
                     'WisperTALK' => $text,
                 ]);
+*/
+
                 print_r($text);
             $this->info("OK, id {$row->id}");
         }
