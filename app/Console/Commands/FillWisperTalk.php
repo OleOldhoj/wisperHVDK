@@ -153,23 +153,29 @@ class FillWisperTalk extends Command
             return 'Error: audio file not found';
         }
 
-        // Primary attempt
-        $resp = $this->callOpenAI($apiKey, $audioPath, $model, $responseFormat);
-        if ($resp['ok']) {
-            return (string) $resp['body'];
-        }
+        // Ensure chunk helper functions are loaded
+        require_once base_path('public_html/openai_transcribe.php');
 
-        // If model rejects the format, fall back to 'text'
-        $bodyLower = strtolower($resp['body']);
-        if ($resp['status'] === 400 && str_contains($bodyLower, 'response_format') && str_contains($bodyLower, 'unsupported')) {
-            $fallback = $this->callOpenAI($apiKey, $audioPath, $model, 'text');
-            if ($fallback['ok']) {
-                return (string) $fallback['body'];
+        $transcriber = function (string $path) use ($apiKey, $audioPath, $model, $responseFormat) {
+            $resp = $this->callOpenAI($apiKey, $path, $model, $responseFormat);
+            if ($resp['ok']) {
+                return (string) $resp['body'];
             }
-            return 'Error: HTTP ' . $fallback['status'] . ', ' . substr($fallback['body'], 0, 2000);
-        }
 
-        return 'Error: HTTP ' . $resp['status'] . ', ' . substr($resp['body'], 0, 2000);
+            // If model rejects the format, fall back to 'text'
+            $bodyLower = strtolower($resp['body']);
+            if ($resp['status'] === 400 && str_contains($bodyLower, 'response_format') && str_contains($bodyLower, 'unsupported')) {
+                $fallback = $this->callOpenAI($apiKey, $path, $model, 'text');
+                if ($fallback['ok']) {
+                    return (string) $fallback['body'];
+                }
+                return 'Error: HTTP ' . $fallback['status'] . ', ' . substr($fallback['body'], 0, 2000);
+            }
+
+            return 'Error: HTTP ' . $resp['status'] . ', ' . substr($resp['body'], 0, 2000);
+        };
+
+        return \transcribe_with_chunks($audioPath, $transcriber);
     }
 
     private function callOpenAI(string $apiKey, string $audioPath, string $model, string $responseFormat): array

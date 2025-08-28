@@ -92,7 +92,8 @@ OPENAI_API_KEY=your_key php public_html/openai_transcribe.php path/to/audio.wav
 ```
 
 If the input exceeds half of the API's 25 MB limit, the script compresses the
-audio to MP3 before uploading.
+audio to MP3 and automatically splits oversized files into smaller chunks
+before uploading.
 
 To populate missing `WisperTALK` values in the database:
 
