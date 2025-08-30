@@ -28,10 +28,14 @@ class EvaluateTheTalk extends Command
 
         foreach ($rows as $row) {
             print_r($row);
-
+            $row->WisperTALK; 
             
         }
         return 0;
     }
 
+
+
+
+    
 }
