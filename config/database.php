@@ -1,7 +1,5 @@
 <?php
 
-use PDO;
-
 return [
     'default'     => env('DB_CONNECTION', 'mysql'),
     'connections' => [
